@@ -40,7 +40,7 @@
           "location": "Bella Vista, AR",
           "address": "123 Golf Course Rd, Bella Vista, AR 72714",
           "size": "medium",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["water station", "adjacent to golf course"],
           "notes": "Located near a golf course; provides water amenities for dogs.",
           "image_URL": "https://example.com/images/k9_corral.jpg"
@@ -51,7 +51,7 @@
           "location": "Bentonville, AR",
           "address": "456 Trailhead Dr, Bentonville, AR 72712",
           "size": "large",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["separate areas for large and small dogs", "agility equipment", "water fountains", "restrooms"],
           "notes": "Adjacent to Slaughter Pen trail system; offers amenities for both dogs and owners.",
           "image_URL": "https://example.com/images/bentonville_bark_park.jpg"
@@ -62,7 +62,7 @@
           "location": "Rogers, AR",
           "address": "789 Lake Atalanta Rd, Rogers, AR 72756",
           "size": "large",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["scenic trails", "restrooms", "water access"],
           "notes": "Surrounded by a trail system; provides a picturesque environment for dogs and owners.",
           "image_URL": "https://example.com/images/lake_atalanta_dog_park.jpg"
@@ -73,7 +73,7 @@
           "location": "Springdale, AR",
           "address": "101 Park St, Springdale, AR 72764",
           "size": "large",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["separate areas for large and small dogs", "agility equipment", "splash pads", "playground equipment", "restrooms"],
           "notes": "Part of a larger park with amenities for both dogs and children; includes splash pads and playgrounds.",
           "image_URL": "https://example.com/images/cl_charlie_willie_george_dog_park.jpg"
@@ -84,7 +84,7 @@
           "location": "Fayetteville, AR",
           "address": "202 Dog Park Rd, Fayetteville, AR 72701",
           "size": "3 acres",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["separate areas for large and small dogs", "water fountains", "restrooms"],
           "notes": "Features separate fenced areas for different dog sizes; includes water fountains and nearby restrooms.",
           "image_URL": "https://example.com/images/iams_dog_park.jpg"
@@ -95,7 +95,7 @@
           "location": "Rogers, AR",
           "address": "303 Memorial Park Dr, Rogers, AR 72758",
           "size": "medium",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["separate areas for large and small dogs", "training yard", "shade", "water stations", "chairs", "doggie bathtub"],
           "notes": "Offers multiple sections including a training yard; provides ample shade and a dog wash station.",
           "image_URL": "https://example.com/images/murphy_memorial_dog_park.jpg"
@@ -106,7 +106,7 @@
           "location": "Rogers, AR",
           "address": "404 Railyard Park Dr, Rogers, AR 72756",
           "size": "small",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["agility equipment", "proximity to bike trails", "restrooms"],
           "notes": "Located near the Railyard Bike Park; features agility equipment and is close to public restrooms.",
           "image_URL": "https://example.com/images/the_railyard_dog_park.jpg"
@@ -117,7 +117,7 @@
           "location": "Bentonville, AR",
           "address": "505 Orchards Park Ln, Bentonville, AR 72712",
           "size": "medium",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["separate areas for large and small dogs", "shade structures", "water stations", "play options"],
           "notes": "Adjacent to a children's play area; offers fenced areas for different dog sizes and various play options.",
           "image_URL": "https://example.com/images/orchards_park_dog_park.jpg"
@@ -128,7 +128,7 @@
           "location": "Bentonville, AR",
           "address": "606 Osage Park Dr, Bentonville, AR 72712",
           "size": "medium",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["wrought iron fencing", "dog station", "floating boardwalk", "benches"],
           "notes": "Features a floating boardwalk around a lake; provides benches and a dog station for convenience.",
           "image_URL": "https://example.com/images/osage_dog_park.jpg"
@@ -139,7 +139,7 @@
           "location": "Centerton, AR",
           "address": "707 Dog Park Rd, Centerton, AR 72719",
           "size": "small",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["fenced area", "open space"],
           "notes": "Provides a safe, fenced area for dogs to play; offers open space for running.",
           "image_URL": "https://example.com/images/centerton_dog_park.jpg"
@@ -150,7 +150,7 @@
           "location": "Eureka Springs, AR",
           "address": "808 Bark Park Ln, Eureka Springs, AR 72632",
           "size": "small",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["fenced area", "shade"],
           "notes": "Offers a fenced area with shade; suitable for dogs to play and socialize.",
           "image_URL": "https://example.com/images/eureka_springs_bark_park.jpg"
@@ -161,7 +161,7 @@
           "location": "Siloam Springs, AR",
           "address": "909 Trails End Rd, Siloam Springs, AR 72761",
           "size": "medium",
-          "isPublic": true,
+          "is_public": true,
           "amenities": ["fenced area", "walking trails", "shade"],
           "notes": "Features a fenced area and walking trails; provides shade for comfort.",
           "image_URL": "https://example.com/images/tails_and_trails_dog_park.jpg"
@@ -172,10 +172,22 @@
           "location": "Roger, AR",
           "address": "15th Pl, Rogers, AR 72758",
           "size": "small",
-          "isPublic": false,
+          "is_public": false,
           "amenities": ["fenced area", "benches"],
           "notes": "Private dog park for residents of 15th Place Townhomes; offers a fenced area and seating.",
           "image_URL": ""
+        }
+      ],
+      "visit": [
+        {
+          "id": 1,
+          "ownerId": 1,
+          "dogId": 1,
+          "parkId": 1,
+          "date": "2021-07-15",
+          "time": "10:00 AM",
+          "duration": "1 hour",
+          "notes": ""
         }
       ]
   }
