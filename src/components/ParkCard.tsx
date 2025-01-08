@@ -5,7 +5,7 @@ function ParkCard({ park, index }: { park: ParkType, index: number }) {
 
   // Parse the amenities string into an array
   const amenitiesArray = JSON.parse(park.amenities);
-  console.log(amenitiesArray);
+  console.log(park);
 
   return (
     <div key={index} className="max-w-sm p-6 overflow-hidden">
@@ -18,7 +18,7 @@ function ParkCard({ park, index }: { park: ParkType, index: number }) {
         <p className="text-base font-bold text-gray-700">Address: </p>
         <p className="text-base text-gray-700">{park.address}</p>
         <p className="text-base text-gray-700"><b>Size:</b> {park.size}</p>
-        <p className="text-base text-gray-700"><b>Public:</b> {park.isPublic ? "Public" : "Private"}</p>
+        <p><b>Public:</b> <span className={park.is_public ? "text-green-500" : "text-red-500"}>{park.is_public ? "Public" : "Private"}</span></p>
         <p className="mt-4 font-bold">Park Amenities</p>
         <ul className="list-disc list-inside">
           {amenitiesArray.map((amenity: string, idx: number) => (

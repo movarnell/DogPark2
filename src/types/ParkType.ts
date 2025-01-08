@@ -4,7 +4,7 @@ export interface ParkType {
     location: string;
     address: string;
     size: string;
-    isPublic: boolean;
+    is_public: boolean;
     amenities: string;
     notes: string;
     image_URL: string;

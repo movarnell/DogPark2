@@ -165,6 +165,17 @@
           "amenities": ["fenced area", "walking trails", "shade"],
           "notes": "Features a fenced area and walking trails; provides shade for comfort.",
           "image_URL": "https://example.com/images/tails_and_trails_dog_park.jpg"
+        },
+        {
+          "id": 13,
+          "park_name": "15th Place Townhomes Dog Park",
+          "location": "Roger, AR",
+          "address": "15th Pl, Rogers, AR 72758",
+          "size": "small",
+          "isPublic": false,
+          "amenities": ["fenced area", "benches"],
+          "notes": "Private dog park for residents of 15th Place Townhomes; offers a fenced area and seating.",
+          "image_URL": ""
         }
       ]
   }
