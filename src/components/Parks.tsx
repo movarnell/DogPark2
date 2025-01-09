@@ -1,24 +1,19 @@
 import { ParkType } from "../types/ParkType"
+import ParkCard from "./ParkCard";
 
 
 function Parks({ parks }: { parks: ParkType[] }) {
     return (
         <div>
-            {parks.map((park: ParkType) => (
-                <div key={park.id} className="p-4">
-                    <h2>{park.park_name}</h2>
-                    <p>This park is in {park.location}</p>
-                    <p>The address: </p>
-                    <p>{park.address}</p>
-                    <p>Size: {park.size}</p>
-                    <p>Public: <span className={park.is_public ? "text-red-600": "text-green-500"}> {park.is_public ? "Public" : "Private"}</span></p>
-                    {/* <p>{park.amenities}</p> */}
-                    <p>{park.notes}</p>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
 
-        </div>
+            {parks.map((park, index) => (
+                <ParkCard key={index} park={park} index={index} />
             ))}
+            </div>
         </div>
-    );
+
+    )
 }
 
 export default Parks;
