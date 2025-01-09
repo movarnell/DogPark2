@@ -12,6 +12,7 @@ interface SignInFormProps {
 function SignInForm({ setSignedInUser }: SignInFormProps) {
     const [passwordStatus, setPasswordStatus] = useState<string>("");
     const [emailStatus, setEmailStatus] = useState<string>("");
+    const [emailValid, setEmailValid] = useState<boolean>(false);
 
 
     // Takes in the user info when clicked and validates, if the validation
@@ -64,9 +65,11 @@ function SignInForm({ setSignedInUser }: SignInFormProps) {
         if (emailRegex.test(email)) {
             console.log("Valid email");
             setEmailStatus(email);
+            setEmailValid(true);
             return true;
         } else {
             console.log("Invalid email");
+            setEmailValid(false);
             return false;
         }
     }
@@ -84,7 +87,7 @@ function SignInForm({ setSignedInUser }: SignInFormProps) {
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {/* FIXME: when the email is invalid, the error message should display but right now it is switched from a boolean to a string and therefore this logic is not working */}
-        {emailStatus ? <p className="mt-1 text-red-500">Invalid email</p> : null}
+        {emailValid ? null :<p className="mt-1 text-red-500">Invalid email</p>}
     </div>
     <div className="mb-4">
         <input
