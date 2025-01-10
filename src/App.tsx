@@ -11,7 +11,7 @@ import RegistrationForm from "./components/RegistrationForm";
 function App() {
   const PARKS_ENDPOINT = "https://backend.michaelvarnell.com:4050/api/parks/";
   const [parks, setParks] = useState([]);
-  const [signedInUser, setSignedInUser] = useState<HumanType | null>(null);
+  const [signedInUser, setSignedInUser] = useState<HumanType>(localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || '{}') : null);
 
   useEffect(() => {
     getParks();

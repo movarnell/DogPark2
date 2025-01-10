@@ -2,11 +2,19 @@ import { Link } from "react-router-dom";
 import { HumanType } from "../types/HumanType";
 
 function Navigation({ signedInUser }: { signedInUser: HumanType | null }) {
+
+    function signOut(e: any) {
+        e.preventDefault();
+        localStorage.removeItem('user');
+        window.location.reload();
+    }
+
+
     return (
         <nav className="p-4 bg-gray-800">
             <div className="container flex items-center justify-between mx-auto">
                 <div className="text-lg font-bold text-white">
-                    <Link to="/">DogPark</Link>
+                    <Link to="/">Northwest Arkansas Dog Park Scheduler</Link>
                 </div>
                 <div className="flex space-x-4">
                     {signedInUser && (
@@ -20,9 +28,16 @@ function Navigation({ signedInUser }: { signedInUser: HumanType | null }) {
                     <Link to="/about" className="text-white">
                         About
                     </Link>
-                    <Link to="/login" className="text-white">
+                    {
+                    !signedInUser && <Link to="/login" className="text-white">
                         Sign In/Register
                     </Link>
+                    }
+                    {signedInUser && (
+                        <Link to="/" className="text-white" onClick={(e) => signOut(e)}>
+                            Sign Out
+                            </Link>
+                            )}
                 </div>
             </div>
         </nav>

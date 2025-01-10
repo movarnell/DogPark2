@@ -12,7 +12,7 @@ function RegistrationForm() {
   async function handleRegister(e: any) {
     e.preventDefault();
     try {
-      const response = await fetch('https://backend.michaelvarnell.com:4050/api/owners/register_owner', {
+      const response = await fetch('https://backend.michaelvarnell.com:4050/api/owners/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

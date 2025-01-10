@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -11,6 +11,8 @@ function SignInForm({ setSignedInUser }: SignInFormProps) {
     const [passwordStatus, setPasswordStatus] = useState<string>("");
     const [emailStatus, setEmailStatus] = useState<string>("");
     const [emailValid, setEmailValid] = useState<boolean>(true);
+    const navigate = useNavigate();
+
 
     function validateEmail(email: string) {
         const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -32,6 +34,10 @@ function SignInForm({ setSignedInUser }: SignInFormProps) {
                 password: passwordStatus
             }
             checkLoginPassword(newUserInfo);
+            // add signedInUser to localStorage
+            localStorage.setItem('user', JSON.stringify(newUserInfo));
+            // Navigate to the home page
+            navigate('/');
         }
     }
 
