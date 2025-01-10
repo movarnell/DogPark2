@@ -42,7 +42,7 @@ function RegistrationForm() {
       <form onSubmit={handleRegister} className="p-8 mx-auto my-auto bg-white rounded-lg shadow-md w-96">
         <h1 className="mb-5 text-3xl">Register</h1>
         <div className="mb-4">
-            
+
           <input
             type="text"
             placeholder="Full Name"
@@ -69,7 +69,7 @@ function RegistrationForm() {
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
-        <p className='text-sm text-gray-500'>Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one special character</p>
+        <p className='mb-4 text-xs text-gray-500'>Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one special character</p>
         <div className="mb-4">
           <input
             type="password"

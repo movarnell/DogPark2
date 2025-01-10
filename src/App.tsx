@@ -29,7 +29,7 @@ function App() {
 
   return (
     <>
-    <Navigation />
+    <Navigation signedInUser={signedInUser} />
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<SignInForm setSignedInUser={setSignedInUser} />} />
