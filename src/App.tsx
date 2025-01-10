@@ -6,6 +6,7 @@ import SignInForm from "./components/SignInForm";
 import Navigation from "./components/Navigation";
 import Home from "./components/Home";
 import { HumanType } from "./types/HumanType";
+import RegistrationForm from "./components/RegistrationForm";
 
 function App() {
   const PARKS_ENDPOINT = "https://backend.michaelvarnell.com:4050/api/parks/";
@@ -31,7 +32,8 @@ function App() {
     <Navigation />
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/login" element={<SignInForm signedInUser={signedInUser} setSignedInUser={setSignedInUser} />} />
+      <Route path="/login" element={<SignInForm setSignedInUser={setSignedInUser} />} />
+      <Route path="/register" element={<RegistrationForm />} />
       <Route path="/parks" element={<Parks parks={parks} />}/>
     </Routes>
     </>
