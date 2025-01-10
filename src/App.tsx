@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import Parks from "./components/Parks";
 import SignInForm from "./components/SignInForm";
 import Navigation from "./components/Navigation";
+import ManageDogs from "./components/ManageDogs";
 import Home from "./components/Home";
 import { HumanType } from "./types/HumanType";
 import RegistrationForm from "./components/RegistrationForm";
@@ -34,6 +35,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<SignInForm setSignedInUser={setSignedInUser} />} />
       <Route path="/register" element={<RegistrationForm />} />
+      <Route path="/ManageDogs" element={<ManageDogs signedInUser={signedInUser} />} />
       <Route path="/parks" element={<Parks parks={parks} />}/>
     </Routes>
     </>
