@@ -19,6 +19,7 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
   const [dogSize, setDogSize] = useState('');
 
   useEffect(() => {
+    // NOTE: This function filters the dogs to only show the dogs that belong to the signed in user
     async function fetchDogs() {
       try {
         const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs', {
@@ -140,6 +141,7 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
         <button
           type="submit"
           className="w-full px-4 py-2 text-white bg-blue-600 rounded"
+          onSubmit={handleAddDog}
         >
           Add Dog
         </button>
