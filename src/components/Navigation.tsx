@@ -5,11 +5,11 @@ function Navigation({ signedInUser }: { signedInUser: HumanType | null }) {
 
     function signOut(e: any) {
         e.preventDefault();
-        localStorage.removeItem('user');
+        document.cookie = 'user=; path=/; max-age=0';
         window.location.reload();
     }
 
-
+//
     return (
         <nav className="p-4 bg-gray-800">
             <div className="container flex items-center justify-between mx-auto">

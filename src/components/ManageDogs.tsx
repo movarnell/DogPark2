@@ -25,7 +25,10 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
           credentials: 'include'
         });
         const data = await res.json();
-        setDogs(data);
+        // sort to show only owners dogs
+        data.sort((a: DogType, b: DogType) => a.id - b.id);
+        let ownersDogs = data.filter((d: DogType) => d.ownerId === signedInUser.id);
+        setDogs(ownersDogs);
       } catch {
         toast.error('Failed to fetch dogs');
       }
@@ -61,6 +64,7 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
     }
   }
 
+  //SECTION - Remove Dog
   async function handleRemoveDog(id: number) {
     try {
       const res = await fetch(`https://backend.michaelvarnell.com:4050/api/dogs/${id}`, {
@@ -77,6 +81,7 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
       toast.error('Server error');
     }
   }
+  //SECTION Remove Dog END
 
   return (
     <div className="container mx-auto my-8">

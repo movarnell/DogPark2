@@ -34,8 +34,8 @@ function SignInForm({ setSignedInUser }: SignInFormProps) {
                 password: passwordStatus
             }
             checkLoginPassword(newUserInfo);
-            // add signedInUser to localStorage
-            localStorage.setItem('user', JSON.stringify(newUserInfo));
+            // add signedInUser to cookie
+            document.cookie = `user=${encodeURIComponent(JSON.stringify(newUserInfo))}; path=/; max-age=43200`;
             // Navigate to the home page
             navigate('/');
         }

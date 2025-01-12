@@ -12,7 +12,10 @@ import RegistrationForm from "./components/RegistrationForm";
 function App() {
   const PARKS_ENDPOINT = "https://backend.michaelvarnell.com:4050/api/parks/";
   const [parks, setParks] = useState([]);
-  const [signedInUser, setSignedInUser] = useState<HumanType>(localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user') || '{}') : null);
+  const [signedInUser, setSignedInUser] = useState<HumanType>(() => {
+    const cookie = document.cookie.split('; ').find(row => row.startsWith('user='));
+    return cookie ? JSON.parse(decodeURIComponent(cookie.split('=')[1])) : null;
+  });
 
   useEffect(() => {
     getParks();
