@@ -14,50 +14,55 @@ type DogType = {
 function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
   const [dogs, setDogs] = useState<DogType[]>([]);
   const [dogName, setDogName] = useState('');
-  const [isFriendly, setIsFriendly] = useState(false);
-  const [isPuppy, setIsPuppy] = useState(false);
+  const [is_friendly, setIs_Friendly] = useState(false);
+  const [is_puppy, setIs_Puppy] = useState(false);
   const [dogSize, setDogSize] = useState('');
 
-  useEffect(() => {
-    // NOTE: This function filters the dogs to only show the dogs that belong to the signed in user
-    async function fetchDogs() {
-      try {
-        const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs', {
-          credentials: 'include'
-        });
-        const data = await res.json();
-        // sort to show only owners dogs
-        data.sort((a: DogType, b: DogType) => a.id - b.id);
-        let ownersDogs = data.filter((d: DogType) => d.ownerId === signedInUser.id);
-        setDogs(ownersDogs);
-      } catch {
-        toast.error('Failed to fetch dogs');
-      }
+
+  // NOTE: This function filters the dogs to only show the dogs that belong to the signed in user
+
+  async function fetchDogs() {
+    try {
+      const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs/', {
+
+      });
+      const data = await res.json();
+      // sort to show only owners dogs
+      console.log("Owners Dogs:", data);
+      setDogs(Array.isArray(data) ? data : [])
+    } catch {
+      toast.error('Failed to fetch dogs');
     }
+  }
+
+  // get the dogs from page load
+  useEffect(() => {
     fetchDogs();
   }, []);
 
   async function handleAddDog(e: any) {
     e.preventDefault();
+    console.log("signedInUser:", signedInUser);
+    console.log("Handle add dog triggered:", dogName, is_friendly, is_puppy, dogSize);
     try {
-      const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs', {
+      const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          ownerId: signedInUser.id,
           dog_name: dogName,
-          isFriendly,
-          isPuppy,
+          is_friendly: is_friendly,
+          is_puppy,
           size: dogSize,
-          ownerId: signedInUser.id
         }),
       });
       const newDog = await res.json();
       setDogs([...dogs, newDog]);
       setDogName('');
-      setIsFriendly(false);
-      setIsPuppy(false);
+      setIs_Friendly(false);
+      setIs_Puppy(false);
       setDogSize('');
       toast.success('Dog added successfully');
     } catch {
@@ -88,7 +93,7 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
     <div className="container mx-auto my-8">
       <h1 className="mb-4 text-2xl font-bold">Manage Dogs</h1>
       <ul>
-        {dogs.map(dog => (
+        {dogs && dogs.map(dog => (
           <li key={dog.id} className="flex items-center justify-between mb-2">
             <span>{dog.dog_name}</span>
             <button
@@ -112,16 +117,16 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
           <label className="flex items-center space-x-1">
             <input
               type="checkbox"
-              checked={isFriendly}
-              onChange={e => setIsFriendly(e.target.checked)}
+              checked={is_friendly}
+              onChange={e => setIs_Friendly(e.target.checked)}
             />
             <span>Friendly?</span>
           </label>
           <label className="flex items-center space-x-1">
             <input
               type="checkbox"
-              checked={isPuppy}
-              onChange={e => setIsPuppy(e.target.checked)}
+              checked={is_puppy}
+              onChange={e => setIs_Puppy(e.target.checked)}
             />
             <span>Puppy?</span>
           </label>

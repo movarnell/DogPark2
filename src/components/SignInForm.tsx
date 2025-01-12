@@ -36,35 +36,46 @@ function SignInForm({ setSignedInUser }: SignInFormProps) {
             checkLoginPassword(newUserInfo);
             // add signedInUser to cookie
             document.cookie = `user=${encodeURIComponent(JSON.stringify(newUserInfo))}; path=/; max-age=43200`;
+
             // Navigate to the home page
             navigate('/');
         }
     }
 
+    // FIXME: When the user logs in, we need their ID to be stored in a state and we need the home page to reflect their login. 
     async function checkLoginPassword(userInfo: { email: string; password: string }) {
+        console.log('Checking login password:', userInfo);
         try {
-            const response = await fetch('https://backend.michaelvarnell.com:4050/api/owners/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(userInfo),
-            });
-            const data = await response.json();
-            if (response.status === 200) {
-                setSignedInUser(data);
-                toast.success('Sign in successful!');
-                setEmailStatus('');
-                setPasswordStatus('');
-            } else if (response.status === 401) {
-                toast.error('Invalid email or password');
-            } else {
-                toast.error(`An error occurred: ${data.message}`);
-            }
+          const response = await fetch('https://backend.michaelvarnell.com:4050/api/owners/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userInfo),
+          });
+          const data = await response.json();
+          if (response.status === 200) {
+            setSignedInUser(data);
+            console.log('Signed in user:', data);
+            toast.success('Sign in successful!');
+            setEmailStatus('');
+
+            // Store user ID in a state or context
+            const userId = data.id;
+            console.log('User ID:', userId);
+
+            // Optionally, store user ID in local storage or cookies
+            document.cookie = `user=${encodeURIComponent(JSON.stringify(data))}; path=/; max-age=43200`;
+
+            // Navigate to the home page
+            navigate('/');
+          } else {
+            toast.error('Sign in failed. Please check your credentials.');
+          }
         } catch (error) {
-            toast.error('An error occurred while signing in');
+          toast.error('Failed to sign in');
         }
-    }
+      }
 
     return (
         <div className="container flex items-center justify-center h-screen mx-auto">
