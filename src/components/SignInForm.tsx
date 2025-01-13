@@ -34,17 +34,13 @@ function SignInForm({ setSignedInUser }: SignInFormProps) {
                 password: passwordStatus
             }
             checkLoginPassword(newUserInfo);
-            // add signedInUser to cookie
-            document.cookie = `user=${encodeURIComponent(JSON.stringify(newUserInfo))}; path=/; max-age=43200`;
 
-            // Navigate to the home page
-            navigate('/');
         }
     }
 
-    // FIXME: When the user logs in, we need their ID to be stored in a state and we need the home page to reflect their login. 
+    // FIXME: When the user logs in, we need their ID to be stored in a state and we need the home page to reflect their login.
     async function checkLoginPassword(userInfo: { email: string; password: string }) {
-        console.log('Checking login password:', userInfo);
+        console.log('Checking login info:', userInfo.email, userInfo.password);
         try {
           const response = await fetch('https://backend.michaelvarnell.com:4050/api/owners/login', {
             method: 'POST',
@@ -54,9 +50,9 @@ function SignInForm({ setSignedInUser }: SignInFormProps) {
             body: JSON.stringify(userInfo),
           });
           const data = await response.json();
+          console.log('Signed in user:', data);
           if (response.status === 200) {
             setSignedInUser(data);
-            console.log('Signed in user:', data);
             toast.success('Sign in successful!');
             setEmailStatus('');
 

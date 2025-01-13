@@ -23,7 +23,7 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
 
   async function fetchDogs() {
     try {
-      const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs/', {
+      const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs', {
 
       });
       const data = await res.json();
@@ -45,7 +45,7 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
     console.log("signedInUser:", signedInUser);
     console.log("Handle add dog triggered:", dogName, is_friendly, is_puppy, dogSize);
     try {
-      const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs/', {
+      const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,7 +96,13 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
         {dogs && dogs.map(dog => (
           <li key={dog.id} className="flex items-center justify-between mb-2">
             <span>{dog.dog_name}</span>
+            <span>{dog.size}</span>
+            <span>{dog.isFriendly ? 'Friendly' : 'Not Friendly'}</span>
+            <span>{dog.isPuppy ? 'Puppy' : 'Not Puppy'}</span>
+            <span>{dog.ownerId}</span>
+            <span>{dog.id}</span>
             <button
+            type='button'
               className="px-2 py-1 text-white bg-red-600 rounded"
               onClick={() => handleRemoveDog(dog.id)}
             >
@@ -120,7 +126,7 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
               checked={is_friendly}
               onChange={e => setIs_Friendly(e.target.checked)}
             />
-            <span>Friendly?</span>
+            <span>This dog is not friendly</span>
           </label>
           <label className="flex items-center space-x-1">
             <input
@@ -128,20 +134,22 @@ function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
               checked={is_puppy}
               onChange={e => setIs_Puppy(e.target.checked)}
             />
-            <span>Puppy?</span>
+            <span>This dog is not a puppy</span>
           </label>
-          <label className="flex items-center space-x-1">
-            <select
-              value={dogSize}
-              onChange={e => setDogSize(e.target.value)}
-              className="p-2 border rounded"
-            >
-              <option value="">Select size</option>
-              <option value="small">Small (0-20lbs)</option>
-              <option value="medium">Medium (20-40lbs)</option>
-              <option value="large">Large (40+ lbs)</option>
-            </select>
+          <label htmlFor="dogSize" className="flex items-center space-x-1">
+            Dog Size:
           </label>
+          <select
+            id="dogSize"
+            value={dogSize}
+            onChange={e => setDogSize(e.target.value)}
+            className="p-2 border rounded"
+          >
+            <option value="">Select size</option>
+            <option value="small">Small (0-20lbs)</option>
+            <option value="medium">Medium (20-40lbs)</option>
+            <option value="large">Large (40+ lbs)</option>
+          </select>
         </div>
         <button
           type="submit"
