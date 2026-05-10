@@ -1,0 +1,17 @@
+{
+  "name": "Dog Park Meetup",
+  "short_name": "Park Meetup",
+  "description": "A local dog park community app for planning visits, finding overlap, and meeting nearby owners.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F4EC",
+  "theme_color": "#064E3B",
+  "icons": [
+    {
+      "src": "/brand/dog-park-meetup-app-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

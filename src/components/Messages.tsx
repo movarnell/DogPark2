@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api, Conversation, DirectMessage, FriendsResponse } from "../lib/api";
 import { HumanType } from "../types/HumanType";
@@ -20,17 +20,17 @@ function Messages({ signedInUser }: { signedInUser: HumanType | null }) {
   const [message, setMessage] = useState("");
   const [searchParams] = useSearchParams();
 
-  async function refreshShell() {
+  const refreshShell = useCallback(async () => {
     const [conversationData, friendData] = await Promise.all([api.getConversations(), api.getFriends()]);
     const requestedConversationId = searchParams.get("conversation") || "";
     setConversations(conversationData);
     setFriends(friendData);
     setActiveConversationId((current) => requestedConversationId || current || conversationData[0]?.id || "");
-  }
+  }, [searchParams]);
 
   useEffect(() => {
     refreshShell().catch((error: Error) => setMessage(error.message));
-  }, []);
+  }, [refreshShell]);
 
   useEffect(() => {
     if (!activeConversationId) {

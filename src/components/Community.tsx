@@ -9,11 +9,12 @@ function visitDogLabel(visit: Visit) {
 function DogVisitAvatar({ visit }: { visit: Visit }) {
   const [failed, setFailed] = useState(false);
   const label = (visit.dog_name || "DG").slice(0, 2).toUpperCase();
+  const imageUrl = api.assetUrl(visit.dog_avatar_url);
 
   return (
     <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white">
-      {visit.dog_avatar_url && !failed ? (
-        <img className="h-full w-full object-cover" src={visit.dog_avatar_url} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+      {imageUrl && !failed ? (
+        <img className="h-full w-full object-cover" src={imageUrl} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
       ) : (
         label
       )}

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { api } from "../lib/api";
+import { fallbackDogParkPhoto } from "../lib/dogParkPhotos";
 import { parkAmenityList, parkDisplayName, parkStableId } from "../lib/park";
 import { ParkType } from "../types/ParkType";
 
@@ -7,15 +8,14 @@ function ParkCard({ park }: { park: ParkType }) {
   const amenities = parkAmenityList(park).slice(0, 5);
   const parkId = parkStableId(park);
   const imageUrl = api.assetUrl(park.photoUrl || park.image_URL);
+  const fallbackPhoto = fallbackDogParkPhoto(parkId || parkDisplayName(park));
 
   return (
     <article className="flex h-full flex-col overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
       {imageUrl ? (
         <img className="h-44 w-full object-cover" src={imageUrl} alt={parkDisplayName(park)} />
       ) : (
-        <div className="grid h-44 place-items-center bg-emerald-950 text-sm font-bold uppercase tracking-wide text-emerald-50">
-          Dog park
-        </div>
+        <img className="h-44 w-full object-cover" src={fallbackPhoto.src} alt={fallbackPhoto.alt} />
       )}
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
@@ -27,6 +27,11 @@ function ParkCard({ park }: { park: ParkType }) {
           )}
         </div>
         <p className="mt-2 text-sm leading-6 text-stone-600">{park.address || park.location}</p>
+        {typeof park.distanceMiles === "number" && (
+          <p className="mt-2 text-xs font-black uppercase tracking-wide text-emerald-800">
+            {park.distanceMiles.toFixed(park.distanceMiles < 10 ? 1 : 0)} miles away
+          </p>
+        )}
         <div className="mt-4 rounded-md border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-950">
           Open this park to see planned visits and let others know when you are going.
         </div>

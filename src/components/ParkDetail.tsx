@@ -2,6 +2,7 @@ import { FormEvent, MouseEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, Review, Visit } from "../lib/api";
 import { parkDisplayName } from "../lib/park";
+import { getCompatibilitySummary, getVisitCompatibility, sortByCompatibility } from "../lib/visitCompatibility";
 import { DogType } from "../types/DogType";
 import { HumanType } from "../types/HumanType";
 import { ParkType } from "../types/ParkType";
@@ -12,10 +13,6 @@ function visitOwnerName(visit: Visit) {
 
 function visitDogLabel(visit: Visit) {
   return [visit.dog_name || "their dog", visit.dog_size, visit.dog_breed].filter(Boolean).join(" · ");
-}
-
-function normalizeDogTrait(value?: string) {
-  return (value || "").trim().toLowerCase();
 }
 
 function dogDisplayName(dog?: DogType) {
@@ -29,60 +26,6 @@ const durationChipClass =
   "inline-flex max-w-full items-center whitespace-nowrap rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-black uppercase tracking-wide leading-none text-emerald-800";
 const matchBadgeClass =
   "inline-flex h-8 min-w-[92px] shrink-0 items-center justify-center whitespace-nowrap rounded-md px-3 text-xs font-black leading-none shadow-sm";
-
-function getVisitCompatibility(visit: Visit, dog?: DogType) {
-  const selectedBreed = normalizeDogTrait(dog?.breed);
-  const selectedSize = normalizeDogTrait(dog?.size);
-  const visitBreed = normalizeDogTrait(visit.dog_breed);
-  const visitSize = normalizeDogTrait(visit.dog_size);
-  const sameBreed = Boolean(selectedBreed && visitBreed && selectedBreed === visitBreed);
-  const sameSize = Boolean(selectedSize && visitSize && selectedSize === visitSize);
-
-  return {
-    sameBreed,
-    sameSize,
-    labels: [
-      sameBreed ? `Same breed: ${visit.dog_breed}` : "",
-      sameSize ? `Same size: ${visit.dog_size}` : "",
-    ].filter(Boolean),
-  };
-}
-
-function getCompatibilitySummary(visits: Visit[], dog?: DogType) {
-  if (!dog) {
-    return {
-      sameBreedCount: 0,
-      sameSizeCount: 0,
-      compatibleVisitCount: 0,
-      bestMatch: null as Visit | null,
-      bestMatchCompatibility: { sameBreed: false, sameSize: false, labels: [] as string[] },
-    };
-  }
-
-  return visits.reduce(
-    (summary, visit) => {
-      const compatibility = getVisitCompatibility(visit, dog);
-      const isBetterMatch =
-        compatibility.sameBreed ||
-        (compatibility.sameSize && !summary.bestMatchCompatibility.sameBreed);
-
-      return {
-        sameBreedCount: summary.sameBreedCount + (compatibility.sameBreed ? 1 : 0),
-        sameSizeCount: summary.sameSizeCount + (compatibility.sameSize ? 1 : 0),
-        compatibleVisitCount: summary.compatibleVisitCount + (compatibility.sameBreed || compatibility.sameSize ? 1 : 0),
-        bestMatch: isBetterMatch ? visit : summary.bestMatch,
-        bestMatchCompatibility: isBetterMatch ? compatibility : summary.bestMatchCompatibility,
-      };
-    },
-    {
-      sameBreedCount: 0,
-      sameSizeCount: 0,
-      compatibleVisitCount: 0,
-      bestMatch: null as Visit | null,
-      bestMatchCompatibility: { sameBreed: false, sameSize: false, labels: [] as string[] },
-    },
-  );
-}
 
 function formatDuration(minutes?: number) {
   const safeMinutes = Number(minutes || 60);
@@ -122,11 +65,12 @@ function formatBusyDate(value: string) {
 function DogVisitAvatar({ visit }: { visit: Visit }) {
   const [failed, setFailed] = useState(false);
   const label = (visit.dog_name || "DG").slice(0, 2).toUpperCase();
+  const imageUrl = api.assetUrl(visit.dog_avatar_url);
 
   return (
     <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white">
-      {visit.dog_avatar_url && !failed ? (
-        <img className="h-full w-full object-cover" src={visit.dog_avatar_url} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+      {imageUrl && !failed ? (
+        <img className="h-full w-full object-cover" src={imageUrl} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
       ) : (
         label
       )}
@@ -137,11 +81,12 @@ function DogVisitAvatar({ visit }: { visit: Visit }) {
 function SelectedDogAvatar({ dog }: { dog: DogType }) {
   const [failed, setFailed] = useState(false);
   const label = (dog.name || dog.dog_name || "DG").slice(0, 2).toUpperCase();
+  const imageUrl = api.assetUrl(dog.avatarUrl);
 
   return (
     <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white">
-      {dog.avatarUrl && !failed ? (
-        <img className="h-full w-full object-cover" src={dog.avatarUrl} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+      {imageUrl && !failed ? (
+        <img className="h-full w-full object-cover" src={imageUrl} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
       ) : (
         label
       )}
@@ -241,6 +186,14 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
       });
   }, [signedInUser]);
 
+  useEffect(() => {
+    if (!signedInUser || !selectedDogId) return;
+    api
+      .getPark(parkId, selectedDogId)
+      .then(setPark)
+      .catch((error: Error) => setMessage(error.message));
+  }, [parkId, selectedDogId, signedInUser]);
+
   const mapSrc = useMemo(() => {
     if (park?.latitude && park.longitude) {
       return `https://maps.google.com/maps?q=${park.latitude},${park.longitude}&z=15&output=embed`;
@@ -249,6 +202,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
   }, [park]);
   const imageUrl = api.assetUrl(park?.photoUrl || park?.image_URL);
   const todayVisits = park?.todayVisits || [];
+  const upcomingVisits = park?.upcomingVisits || [];
   const knownDogIds = new Set(todayVisits.map((visit) => visit.dog_id).filter(Boolean));
   const dogCount = knownDogIds.size || todayVisits.length;
   const ownerCount = signedInUser ? new Set(todayVisits.map((visit) => visit.owner_user_id).filter(Boolean)).size || todayVisits.length : todayVisits.length;
@@ -261,8 +215,14 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
   const signedInUserId = signedInUser ? String(signedInUser.id) : "";
   const selectedDogName = dogDisplayName(selectedDog);
   const todayCompatibility = getCompatibilitySummary(todayVisits, selectedDog);
-  const upcomingCompatibility = getCompatibilitySummary(park?.upcomingVisits || [], selectedDog);
+  const upcomingCompatibility = getCompatibilitySummary(upcomingVisits, selectedDog);
   const totalCompatibilityCount = todayCompatibility.compatibleVisitCount + upcomingCompatibility.compatibleVisitCount;
+  const rankedTodayVisits = sortByCompatibility(todayVisits, selectedDog);
+  const rankedUpcomingVisits = sortByCompatibility(upcomingVisits, selectedDog);
+  const bestWindow = todayCompatibility.bestMatch || upcomingCompatibility.bestMatch;
+  const bestWindowCompatibility = todayCompatibility.bestMatch
+    ? todayCompatibility.bestMatchCompatibility
+    : upcomingCompatibility.bestMatchCompatibility;
 
   async function submitVisitPlan(startsAt = visitStartsAt) {
     if (!startsAt) {
@@ -314,7 +274,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
   }
 
   async function refreshPark() {
-    setPark(await api.getPark(parkId));
+    setPark(await api.getPark(parkId, selectedDogId || undefined));
   }
 
   async function markInterested(visit: Visit) {
@@ -473,8 +433,19 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                   : `We will flag matches for ${selectedDogName}`}
               </p>
               <p className="mt-1">
-                Same-breed and same-size visits are highlighted so you can pick times with a better chance of comfortable social play.
+                We rank same-size, preferred-size, energy, play style, and social comfort signals so you can pick the best overlap.
               </p>
+              {bestWindow && (
+                <div className="mt-3 rounded-md bg-white p-3 text-emerald-950">
+                  <p className="text-xs font-black uppercase tracking-wide text-emerald-800">Best window for {selectedDogName}</p>
+                  <p className="mt-1 font-black">
+                    {formatVisitDateTime(bestWindow.starts_at)} with {bestWindow.dog_name || "another dog"}
+                  </p>
+                  {bestWindowCompatibility.labels.length > 0 && (
+                    <p className="mt-1 text-sm font-semibold">{bestWindowCompatibility.labels.slice(0, 2).join(" · ")}</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
           {dogs.length === 0 && (
@@ -644,7 +615,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                           </p>
                           <p className="mt-1 text-sm leading-5 text-emerald-900">
                             {todayCompatibility.bestMatch
-                              ? `Best current match starts at ${formatVisitTime(todayCompatibility.bestMatch.starts_at)}.`
+                              ? `Best current match starts at ${formatVisitTime(todayCompatibility.bestMatch.starts_at)} with a ${todayCompatibility.bestMatchCompatibility.score}% fit.`
                               : "Post your plan anyway so owners with compatible dogs know when to overlap."}
                           </p>
                         </div>
@@ -664,10 +635,10 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                       No one has posted for today yet. Add your plan below to start a meetup window.
                     </p>
                   )}
-                  {todayVisits.map((visit) => {
+                  {rankedTodayVisits.map((visit) => {
                     const isOwnVisit = signedInUserId && String(visit.owner_user_id) === signedInUserId;
                     const compatibility = getVisitCompatibility(visit, selectedDog);
-                    const hasCompatibility = compatibility.sameBreed || compatibility.sameSize;
+                    const hasCompatibility = compatibility.score > 0;
                     return (
                       <article
                         className={`rounded-lg border bg-white p-3 ${hasCompatibility ? "border-emerald-500 shadow-sm ring-2 ring-emerald-100" : "border-emerald-100"}`}
@@ -689,6 +660,11 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                                     {label}
                                   </span>
                                 ))}
+                                {hasCompatibility && (
+                                  <span className="inline-flex max-w-full items-center rounded-md bg-emerald-900 px-2.5 py-1 text-xs font-black leading-none text-white">
+                                    {compatibility.score}% fit
+                                  </span>
+                                )}
                                 {visit.social_intent && (
                                   <span className={socialChipClass}>
                                     {visit.social_intent}
@@ -705,7 +681,12 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                               </div>
                               {hasCompatibility && (
                                 <p className="mt-2 text-sm font-semibold leading-5 text-emerald-900">
-                                  This looks like a stronger social window for {selectedDogName}.
+                                  This looks like a stronger park window for {selectedDogName}.
+                                </p>
+                              )}
+                              {compatibility.cautions.length > 0 && (
+                                <p className="mt-2 text-sm font-semibold leading-5 text-amber-800">
+                                  {compatibility.cautions.join(" · ")}
                                 </p>
                               )}
                               {visit.notes && <p className="mt-2 text-sm leading-5 text-stone-600">{visit.notes}</p>}
@@ -821,7 +802,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                       : `No upcoming breed or size matches for ${selectedDogName} yet.`}
                   </p>
                   <p className="mt-1 text-sm leading-5 text-emerald-900">
-                    Same breed and same size are useful cues when you want a more natural first interaction.
+                    The strongest windows combine size fit, preferred playmates, energy, play style, and social comfort.
                   </p>
                 </div>
               </div>
@@ -841,10 +822,10 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                 No one has posted a planned visit yet. Be the first to start a meetup window.
               </p>
             )}
-            {(park.upcomingVisits || []).map((visit) => {
+            {rankedUpcomingVisits.map((visit) => {
               const isOwnVisit = signedInUserId && String(visit.owner_user_id) === signedInUserId;
               const compatibility = getVisitCompatibility(visit, selectedDog);
-              const hasCompatibility = compatibility.sameBreed || compatibility.sameSize;
+              const hasCompatibility = compatibility.score > 0;
               return (
                 <div
                   className={`rounded-lg border bg-white p-4 text-sm shadow-sm ${hasCompatibility ? "border-emerald-500 ring-2 ring-emerald-100" : "border-stone-200"}`}
@@ -864,6 +845,11 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                               {label}
                             </span>
                           ))}
+                          {hasCompatibility && (
+                            <span className="inline-flex max-w-full items-center rounded-md bg-emerald-900 px-2.5 py-1 text-xs font-black leading-none text-white">
+                              {compatibility.score}% fit
+                            </span>
+                          )}
                           <span className={durationChipClass}>
                             {formatDuration(visit.duration_minutes)} window
                           </span>
@@ -876,6 +862,11 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                         {hasCompatibility && (
                           <p className="mt-2 text-sm font-semibold leading-5 text-emerald-900">
                             A better-fit social window for {selectedDogName}.
+                          </p>
+                        )}
+                        {compatibility.cautions.length > 0 && (
+                          <p className="mt-2 text-sm font-semibold leading-5 text-amber-800">
+                            {compatibility.cautions.join(" · ")}
                           </p>
                         )}
                       </div>

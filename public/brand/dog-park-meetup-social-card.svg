@@ -1,0 +1,39 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Dog Park Meetup social card</title>
+  <desc id="desc">Social preview showing dogs and owners planning a meetup at a public dog park.</desc>
+  <rect width="1200" height="630" fill="#E0F2FE"/>
+  <circle cx="1030" cy="112" r="74" fill="#FDE68A"/>
+  <path d="M0 344C146 260 286 232 420 256C570 282 686 240 852 158C988 90 1086 86 1200 102V630H0V344Z" fill="#DCFCE7"/>
+  <path d="M0 424C164 360 312 342 444 362C624 390 762 338 922 266C1030 218 1122 202 1200 206V630H0V424Z" fill="#86EFAC"/>
+  <path d="M66 272H1038" stroke="#064E3B" stroke-width="18" stroke-linecap="round"/>
+  <path d="M118 208V520M208 194V530M298 208V536M840 202V536M930 190V530M1020 210V520" stroke="#064E3B" stroke-width="18" stroke-linecap="round"/>
+  <path d="M384 274C384 234 416 202 456 202H632C672 202 704 234 704 274V536H384V274Z" fill="#ECFDF5" stroke="#064E3B" stroke-width="18"/>
+  <path d="M434 382H654M546 218V538" stroke="#064E3B" stroke-width="18" stroke-linecap="round"/>
+  <g transform="translate(76 72)">
+    <rect width="120" height="120" rx="26" fill="#065F46"/>
+    <path d="M13 72C25 57 39 51 56 53C73 55 85 50 107 37V95H13V72Z" fill="#86EFAC"/>
+    <path d="M24 66H96" stroke="#064E3B" stroke-width="5" stroke-linecap="round"/>
+    <path d="M36 52V92M84 48V92" stroke="#064E3B" stroke-width="5" stroke-linecap="round"/>
+    <path d="M60 18C70 18 78 26 78 36C78 49 60 62 60 62C60 62 42 49 42 36C42 26 50 18 60 18Z" fill="#F59E0B"/>
+    <circle cx="60" cy="36" r="8" fill="#064E3B"/>
+  </g>
+  <text x="220" y="120" fill="#064E3B" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="48" font-weight="900">Dog Park Meetup</text>
+  <text x="76" y="236" fill="#0F172A" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="72" font-weight="900">Find the best park</text>
+  <text x="76" y="312" fill="#0F172A" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="72" font-weight="900">window for your dog.</text>
+  <text x="80" y="378" fill="#334155" font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif" font-size="29" font-weight="800">Post visits, compare dog fit, and meet local owners at public parks.</text>
+  <path d="M168 502C168 456 202 420 248 420H278C324 420 358 456 358 502V560H168V502Z" fill="#FFF7ED" stroke="#064E3B" stroke-width="14"/>
+  <path d="M220 430L194 390M304 430L342 394" stroke="#064E3B" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="246" cy="496" r="10" fill="#064E3B"/>
+  <circle cx="294" cy="496" r="10" fill="#064E3B"/>
+  <path d="M444 510C444 462 480 424 528 424H558C606 424 642 462 642 510V568H444V510Z" fill="#FDE68A" stroke="#064E3B" stroke-width="14"/>
+  <path d="M500 436L470 394M584 436L622 398" stroke="#064E3B" stroke-width="16" stroke-linecap="round"/>
+  <circle cx="526" cy="502" r="10" fill="#064E3B"/>
+  <circle cx="574" cy="502" r="10" fill="#064E3B"/>
+  <g transform="translate(866 344)">
+    <rect width="220" height="164" rx="22" fill="#FFFFFF" stroke="#0F766E" stroke-width="8"/>
+    <circle cx="42" cy="48" r="14" fill="#F59E0B"/>
+    <circle cx="42" cy="88" r="14" fill="#0F766E"/>
+    <circle cx="42" cy="128" r="14" fill="#0284C7"/>
+    <path d="M68 48H178M68 88H168M68 128H150" stroke="#CBD5E1" stroke-width="9" stroke-linecap="round"/>
+  </g>
+</svg>

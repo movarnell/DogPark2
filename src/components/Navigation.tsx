@@ -22,13 +22,14 @@ function getInitials(user: HumanType) {
 
 function UserAvatar({ user }: { user: HumanType }) {
   const [imageFailed, setImageFailed] = useState(false);
+  const imageUrl = api.assetUrl(user.avatarUrl);
 
   return (
     <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white">
-      {user.avatarUrl && !imageFailed ? (
+      {imageUrl && !imageFailed ? (
         <img
           className="h-full w-full object-cover"
-          src={user.avatarUrl}
+          src={imageUrl}
           alt=""
           referrerPolicy="no-referrer"
           onError={() => setImageFailed(true)}
@@ -65,12 +66,10 @@ function Navigation({
     <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur">
       <nav className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
         <Link to="/" className="flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-lg bg-emerald-900 text-lg font-black text-white">
-            DP
-          </span>
+          <img className="h-10 w-10 rounded-lg" src="/brand/dog-park-meetup-mark.svg" alt="" />
           <span>
-            <span className="block text-base font-black tracking-tight">Dog Park Social</span>
-            <span className="block text-xs font-medium text-stone-500">Post plans. Meet up. Share conditions.</span>
+            <span className="block text-base font-black tracking-tight">Dog Park Meetup</span>
+            <span className="block text-xs font-medium text-stone-500">Plan visits. Find your local pack.</span>
           </span>
         </Link>
         <div className="flex flex-wrap items-center gap-2">

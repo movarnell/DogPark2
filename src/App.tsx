@@ -32,7 +32,7 @@ function App() {
       <main className="min-h-screen bg-stone-50">
         <div className="mx-auto flex min-h-screen max-w-6xl items-center justify-center px-4">
           <div className="rounded-lg border border-stone-200 bg-white px-5 py-4 text-sm text-stone-700 shadow-sm">
-            Loading Dog Park Social
+            Loading Dog Park Meetup
           </div>
         </div>
       </main>

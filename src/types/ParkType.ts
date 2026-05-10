@@ -11,6 +11,8 @@ export interface ParkType {
     state?: string;
     latitude?: number | null;
     longitude?: number | null;
+    distanceMeters?: number;
+    distanceMiles?: number;
     size?: string;
     is_public?: boolean;
     amenities?: string[] | string;

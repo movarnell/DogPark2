@@ -97,7 +97,7 @@ function SignInForm({ setSignedInUser }: SignInFormProps) {
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
         <Link to="/register" className="mt-4 block text-center text-sm font-bold text-emerald-900">
-          New to Dog Park Social? Create an account
+          New to Dog Park Meetup? Create an account
         </Link>
       </form>
     </main>

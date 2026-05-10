@@ -1,0 +1,108 @@
+name: Deploy to Firebase
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firebase-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+      PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
+      FRONTEND_BASE_URL: ${{ vars.FRONTEND_BASE_URL }}
+      CORS_ORIGINS: ${{ vars.CORS_ORIGINS }}
+      DB_HOSTNAME: ${{ secrets.DB_HOSTNAME }}
+      DB_USER_NAME: ${{ secrets.DB_USER_NAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_DATABASE: ${{ secrets.DB_DATABASE }}
+      GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+      GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+      GOOGLE_IOS_CLIENT_ID: ${{ secrets.GOOGLE_IOS_CLIENT_ID }}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+      GOOGLE_OAUTH_REDIRECT_URI: ${{ vars.GOOGLE_OAUTH_REDIRECT_URI }}
+      APPLE_OAUTH_CLIENT_ID: ${{ secrets.APPLE_OAUTH_CLIENT_ID }}
+      APPLE_OAUTH_TEAM_ID: ${{ secrets.APPLE_OAUTH_TEAM_ID }}
+      APPLE_OAUTH_KEY_ID: ${{ secrets.APPLE_OAUTH_KEY_ID }}
+      APPLE_OAUTH_PRIVATE_KEY: ${{ secrets.APPLE_OAUTH_PRIVATE_KEY }}
+      APPLE_OAUTH_REDIRECT_URI: ${{ vars.APPLE_OAUTH_REDIRECT_URI }}
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            functions/package-lock.json
+
+      - name: Validate deployment configuration
+        run: |
+          missing=0
+          for name in FIREBASE_PROJECT_ID PUBLIC_BASE_URL FRONTEND_BASE_URL CORS_ORIGINS DB_HOSTNAME DB_USER_NAME DB_PASSWORD DB_DATABASE SESSION_SECRET FIREBASE_SERVICE_ACCOUNT; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing required deployment setting: $name"
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: ""
+          VITE_ENABLE_APPLE_SIGN_IN: ${{ vars.VITE_ENABLE_APPLE_SIGN_IN || 'false' }}
+
+      - name: Install function dependencies
+        run: npm ci
+        working-directory: functions
+
+      - name: Test functions
+        run: npm test
+        working-directory: functions
+
+      - name: Write Firebase Functions environment
+        run: |
+          apple_private_key="${APPLE_OAUTH_PRIVATE_KEY//$'\n'/\\n}"
+          {
+            echo "NODE_ENV=production"
+            echo "PUBLIC_BASE_URL=$PUBLIC_BASE_URL"
+            echo "CORS_ORIGINS=$CORS_ORIGINS"
+            echo "HOSTNAME=$DB_HOSTNAME"
+            echo "USER_NAME=$DB_USER_NAME"
+            echo "PASSWORD=$DB_PASSWORD"
+            echo "DATABASE=$DB_DATABASE"
+            echo "GOOGLE_PLACES_API_KEY=$GOOGLE_PLACES_API_KEY"
+            echo "GOOGLE_OAUTH_CLIENT_ID=$GOOGLE_OAUTH_CLIENT_ID"
+            echo "GOOGLE_IOS_CLIENT_ID=$GOOGLE_IOS_CLIENT_ID"
+            echo "GOOGLE_OAUTH_CLIENT_SECRET=$GOOGLE_OAUTH_CLIENT_SECRET"
+            echo "GOOGLE_OAUTH_REDIRECT_URI=$GOOGLE_OAUTH_REDIRECT_URI"
+            echo "APPLE_OAUTH_CLIENT_ID=$APPLE_OAUTH_CLIENT_ID"
+            echo "APPLE_OAUTH_TEAM_ID=$APPLE_OAUTH_TEAM_ID"
+            echo "APPLE_OAUTH_KEY_ID=$APPLE_OAUTH_KEY_ID"
+            echo "APPLE_OAUTH_PRIVATE_KEY=$apple_private_key"
+            echo "APPLE_OAUTH_REDIRECT_URI=$APPLE_OAUTH_REDIRECT_URI"
+            echo "FRONTEND_BASE_URL=$FRONTEND_BASE_URL"
+            echo "SESSION_SECRET=$SESSION_SECRET"
+            echo "COOKIE_SECURE=true"
+            echo "AUTH_DB_FALLBACK=false"
+          } > functions/.env
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Deploy Hosting and Functions
+        run: npx --yes firebase-tools@13.35.1 deploy --project "$FIREBASE_PROJECT_ID" --only hosting,functions:api --non-interactive

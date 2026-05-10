@@ -1,0 +1,28 @@
+{
+  "name": "dogpark2-functions",
+  "version": "1.0.0",
+  "description": "Firebase Functions API for Dog Park Social",
+  "main": "index.js",
+  "private": true,
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "serve": "firebase emulators:start --only functions,hosting",
+    "start": "node main.js",
+    "test": "npm run test:unit",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:integration": "node --test tests/integration/*.test.js",
+    "test:all": "npm run test:unit && npm run test:integration"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.1",
+    "firebase-functions": "^6.4.0",
+    "helmet": "^8.1.0",
+    "mysql2": "^3.22.3"
+  }
+}

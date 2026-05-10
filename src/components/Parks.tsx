@@ -14,6 +14,7 @@ function Parks() {
   const [parks, setParks] = useState<ParkType[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [searchContext, setSearchContext] = useState("");
   const [useLocation, setUseLocation] = useState(false);
 
   useEffect(() => {
@@ -27,16 +28,23 @@ function Parks() {
       params.set("lng", activeLng);
       if (activeRadius) params.set("radius", activeRadius);
     } else if (activeQuery) {
-      params.set("query", `${activeQuery} dog parks`);
+      params.set("query", activeQuery);
     }
     params.set("limit", "18");
     setStatus("loading");
     setMessage("");
+    setSearchContext("");
     api
       .searchParks(params)
       .then((data) => {
         setParks(data.results);
         setMessage(data.warning || "");
+        if (data.searchArea) {
+          const miles = data.searchArea.radiusMiles.toFixed(data.searchArea.radiusMiles % 1 ? 1 : 0);
+          setSearchContext(`Showing dog parks within ${miles} miles of ${data.searchArea.label}.`);
+        } else if (activeQuery) {
+          setSearchContext(`Showing best matches for "${activeQuery}".`);
+        }
         setStatus("success");
       })
       .catch((error: Error) => {
@@ -110,6 +118,7 @@ function Parks() {
           </form>
         </div>
         {message && <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">{message}</p>}
+        {searchContext && <p className="mt-4 text-sm font-semibold text-stone-700">{searchContext}</p>}
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">

@@ -1,0 +1,27 @@
+{
+  "name": "dogpark2backend",
+  "version": "1.0.0",
+  "description": "backend connecting to database using express",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "npm run test:all",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:integration": "node --test tests/integration/*.test.js",
+    "test:all": "npm run test:unit && npm run test:integration",
+    "migrate:status": "node scripts/migrate.js status",
+    "migrate:up": "node scripts/migrate.js up",
+    "migrate:baseline": "node scripts/migrate.js baseline"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.5.1",
+    "helmet": "^8.1.0",
+    "mysql2": "^3.22.3"
+  }
+}

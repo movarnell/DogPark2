@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "dog-park-social-b7ccb"
+  },
+  "targets": {
+    "dog-park-social-b7ccb": {
+      "hosting": {
+        "dogpark2": [
+          "dog-park-social-b7ccb"
+        ]
+      }
+    }
+  }
+}

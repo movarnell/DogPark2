@@ -23,4 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
-.github
+.dev-auth-fallback.json
+.github/*
+!.github/workflows/
+!.github/workflows/*.yml

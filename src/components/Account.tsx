@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { canonicalBreedKey, DOG_BREEDS } from "../lib/breedCatalog";
 import { api, FriendsResponse, UserBrief, Visit } from "../lib/api";
 import { parkDisplayName } from "../lib/park";
 import { DogType } from "../types/DogType";
@@ -8,9 +9,14 @@ import { HumanType } from "../types/HumanType";
 type DogDraft = {
   name: string;
   breed: string;
+  breedKey: string;
   size: string;
   avatarUrl: string;
   notes: string;
+  energyLevel: "low" | "moderate" | "high";
+  playStyle: "gentle" | "balanced" | "rough";
+  socialComfort: "shy" | "selective" | "social";
+  preferredDogSizes: string[];
   isFriendly: boolean;
   isPuppy: boolean;
   isPublic: boolean;
@@ -22,6 +28,23 @@ type VisitDraft = {
   durationMinutes: number;
   notes: string;
   socialIntent: string;
+};
+
+const dogSizeOptions = ["small", "medium", "large", "giant"];
+const emptyDogDraft: DogDraft = {
+  name: "",
+  breed: "",
+  breedKey: "",
+  size: "medium",
+  avatarUrl: "",
+  notes: "",
+  energyLevel: "moderate",
+  playStyle: "balanced",
+  socialComfort: "social",
+  preferredDogSizes: [],
+  isFriendly: true,
+  isPuppy: false,
+  isPublic: true,
 };
 
 function emptyFriends(): FriendsResponse {
@@ -44,9 +67,14 @@ function dogDraftFromDog(dog: DogType): DogDraft {
   return {
     name: dog.name || dog.dog_name || "",
     breed: dog.breed || "",
+    breedKey: dog.breedKey || canonicalBreedKey(dog.breed),
     size: dog.size || "medium",
     avatarUrl: dog.avatarUrl || "",
     notes: dog.notes || "",
+    energyLevel: dog.energyLevel || "moderate",
+    playStyle: dog.playStyle || "balanced",
+    socialComfort: dog.socialComfort || "social",
+    preferredDogSizes: dog.preferredDogSizes || [],
     isFriendly: dog.isFriendly,
     isPuppy: dog.isPuppy,
     isPublic: dog.isPublic ?? true,
@@ -65,15 +93,114 @@ function visitDraftFromVisit(visit: Visit): VisitDraft {
 
 function ProfilePhotoPreview({ src, label, size = "h-14 w-14" }: { src?: string; label: string; size?: string }) {
   const [failed, setFailed] = useState(false);
+  const imageSrc = api.assetUrl(src);
 
   return (
     <span className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-sm font-black text-white ${size}`}>
-      {src && !failed ? (
-        <img className="h-full w-full object-cover" src={src} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+      {imageSrc && !failed ? (
+        <img className="h-full w-full object-cover" src={imageSrc} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
       ) : (
         label.slice(0, 2).toUpperCase()
       )}
     </span>
+  );
+}
+
+function BreedInput({
+  value,
+  onChange,
+  className,
+  placeholder = "Breed or mix",
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+  placeholder?: string;
+}) {
+  return (
+    <>
+      <input
+        className={className}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        list="dog-breed-options"
+      />
+      <datalist id="dog-breed-options">
+        {DOG_BREEDS.map((breed) => (
+          <option value={breed} key={breed} />
+        ))}
+      </datalist>
+    </>
+  );
+}
+
+function dogDraftSignature(draft?: DogDraft) {
+  if (!draft) return "";
+  return JSON.stringify({
+    ...draft,
+    preferredDogSizes: [...draft.preferredDogSizes].sort(),
+  });
+}
+
+function dogDraftChanged(current?: DogDraft, saved?: DogDraft) {
+  return dogDraftSignature(current) !== dogDraftSignature(saved);
+}
+
+function withBreedValue(draft: DogDraft, breed: string): DogDraft {
+  return { ...draft, breed, breedKey: canonicalBreedKey(breed) };
+}
+
+function PhotoUploadControl({
+  value,
+  label,
+  previewLabel,
+  purpose,
+  onChange,
+  size,
+}: {
+  value?: string;
+  label: string;
+  previewLabel: string;
+  purpose: string;
+  onChange: (url: string) => void;
+  size?: string;
+}) {
+  const [status, setStatus] = useState("");
+
+  async function uploadPhoto(file?: File) {
+    if (!file) return;
+    setStatus("Uploading photo...");
+    try {
+      const result = await api.uploadMedia(file, purpose);
+      onChange(result.url);
+      setStatus("Photo uploaded.");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : "Photo upload failed.");
+    }
+  }
+
+  return (
+    <div className="rounded-md border border-stone-200 bg-stone-50 p-3">
+      <div className="flex items-center gap-3">
+        <ProfilePhotoPreview src={value} label={previewLabel} size={size} />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-black text-stone-800">{label}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <label className="inline-flex cursor-pointer items-center rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-bold text-stone-800">
+              {value ? "Change photo" : "Upload photo"}
+              <input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => uploadPhoto(event.target.files?.[0])} />
+            </label>
+            {value && (
+              <button className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-bold text-stone-700" type="button" onClick={() => onChange("")}>
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+      {status && <p className="mt-2 text-xs font-semibold text-emerald-900">{status}</p>}
+    </div>
   );
 }
 
@@ -93,16 +220,8 @@ function Account({
   const [activityVisibility, setActivityVisibility] = useState<HumanType["activityVisibility"]>(signedInUser?.activityVisibility || "owner_and_dog");
   const [dogs, setDogs] = useState<DogType[]>([]);
   const [dogDrafts, setDogDrafts] = useState<Record<string, DogDraft>>({});
-  const [newDog, setNewDog] = useState<DogDraft>({
-    name: "",
-    breed: "",
-    size: "medium",
-    avatarUrl: "",
-    notes: "",
-    isFriendly: true,
-    isPuppy: false,
-    isPublic: true,
-  });
+  const [savedDogDrafts, setSavedDogDrafts] = useState<Record<string, DogDraft>>({});
+  const [newDog, setNewDog] = useState<DogDraft>(emptyDogDraft);
   const [visits, setVisits] = useState<Visit[]>([]);
   const [visitDrafts, setVisitDrafts] = useState<Record<string, VisitDraft>>({});
   const [visitParkNames, setVisitParkNames] = useState<Record<string, string>>({});
@@ -130,12 +249,12 @@ function Account({
         }),
       );
       setDogs(dogData);
-      setDogDrafts(
-        dogData.reduce<Record<string, DogDraft>>((drafts, dog) => {
-          drafts[dog.id] = dogDraftFromDog(dog);
-          return drafts;
-        }, {}),
-      );
+      const nextDogDrafts = dogData.reduce<Record<string, DogDraft>>((drafts, dog) => {
+        drafts[dog.id] = dogDraftFromDog(dog);
+        return drafts;
+      }, {});
+      setDogDrafts(nextDogDrafts);
+      setSavedDogDrafts(nextDogDrafts);
       setVisits(visitData);
       setVisitParkNames(Object.fromEntries(parkNameEntries));
       setFriends(friendData);
@@ -172,10 +291,12 @@ function Account({
     setMessage("");
     try {
       const dog = await api.createDog({ ...newDog, dog_name: newDog.name });
+      const savedDraft = dogDraftFromDog(dog);
       setDogs((current) => [dog, ...current]);
-      setDogDrafts((current) => ({ ...current, [dog.id]: dogDraftFromDog(dog) }));
-      setNewDog({ name: "", breed: "", size: "medium", avatarUrl: "", notes: "", isFriendly: true, isPuppy: false, isPublic: true });
-      setMessage("Dog added.");
+      setDogDrafts((current) => ({ ...current, [dog.id]: savedDraft }));
+      setSavedDogDrafts((current) => ({ ...current, [dog.id]: savedDraft }));
+      setNewDog({ ...emptyDogDraft });
+      setMessage(`${dog.name || dog.dog_name} saved.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not add dog.");
     }
@@ -187,9 +308,11 @@ function Account({
     setMessage("");
     try {
       const dog = await api.updateDog(dogId, { ...draft, dog_name: draft.name });
+      const savedDraft = dogDraftFromDog(dog);
       setDogs((current) => current.map((item) => (item.id === dogId ? dog : item)));
-      setDogDrafts((current) => ({ ...current, [dogId]: dogDraftFromDog(dog) }));
-      setMessage("Dog updated.");
+      setDogDrafts((current) => ({ ...current, [dogId]: savedDraft }));
+      setSavedDogDrafts((current) => ({ ...current, [dogId]: savedDraft }));
+      setMessage(`${dog.name || dog.dog_name} saved.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not update dog.");
     }
@@ -200,6 +323,16 @@ function Account({
     try {
       await api.deleteDog(dogId);
       setDogs((current) => current.filter((dog) => dog.id !== dogId));
+      setDogDrafts((current) => {
+        const next = { ...current };
+        delete next[dogId];
+        return next;
+      });
+      setSavedDogDrafts((current) => {
+        const next = { ...current };
+        delete next[dogId];
+        return next;
+      });
       setMessage("Dog removed.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not remove dog.");
@@ -279,6 +412,13 @@ function Account({
     }
   }
 
+  function togglePreferredSize(draft: DogDraft, size: string): DogDraft {
+    const sizes = draft.preferredDogSizes.includes(size)
+      ? draft.preferredDogSizes.filter((item) => item !== size)
+      : [...draft.preferredDogSizes, size];
+    return { ...draft, preferredDogSizes: sizes };
+  }
+
   return (
     <main className="mx-auto max-w-7xl px-4 py-6">
       <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
@@ -291,17 +431,15 @@ function Account({
       <section className="mt-6 grid gap-6 lg:grid-cols-[360px_1fr]">
         <form className="h-fit rounded-lg border border-stone-200 bg-white p-5 shadow-sm" onSubmit={saveProfile}>
           <h2 className="text-xl font-black">Profile</h2>
-          <div className="mt-4 flex items-center gap-3 rounded-md bg-stone-50 p-3">
-            <ProfilePhotoPreview src={avatarUrl} label={fullName || username || "U"} />
-            <div className="min-w-0">
-              <p className="font-bold text-stone-950">{fullName || username || "Profile photo"}</p>
-              <p className="text-xs leading-5 text-stone-500">Shown in the navigation and on community activity.</p>
-            </div>
+          <div className="mt-4">
+            <PhotoUploadControl
+              value={avatarUrl}
+              label="Profile photo"
+              previewLabel={fullName || username || "U"}
+              purpose="owner_profile_photo"
+              onChange={setAvatarUrl}
+            />
           </div>
-          <label className="mt-4 block text-sm font-bold text-stone-700">
-            Profile photo URL
-            <input className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2" value={avatarUrl} onChange={(event) => setAvatarUrl(event.target.value)} placeholder="https://..." />
-          </label>
           <label className="mt-4 block text-sm font-bold text-stone-700">
             Display name
             <input className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2" value={fullName} onChange={(event) => setFullName(event.target.value)} />
@@ -394,21 +532,47 @@ function Account({
           <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
             <h2 className="text-xl font-black">Dogs</h2>
             <form className="mt-4 grid gap-3 rounded-md bg-stone-50 p-4 md:grid-cols-2" onSubmit={addDog}>
-              {newDog.avatarUrl && (
-                <div className="flex items-center gap-3 md:col-span-2">
-                  <ProfilePhotoPreview src={newDog.avatarUrl} label={newDog.name || "DG"} size="h-12 w-12" />
-                  <p className="text-sm font-semibold text-stone-700">Dog photo preview</p>
-                </div>
-              )}
+              <div className="md:col-span-2">
+                <PhotoUploadControl
+                  value={newDog.avatarUrl}
+                  label="Dog photo"
+                  previewLabel={newDog.name || "DG"}
+                  purpose="dog_photo"
+                  size="h-12 w-12"
+                  onChange={(url) => setNewDog({ ...newDog, avatarUrl: url })}
+                />
+              </div>
               <input className="rounded-md border border-stone-300 px-3 py-2" value={newDog.name} onChange={(event) => setNewDog({ ...newDog, name: event.target.value })} placeholder="Dog name" required />
-              <input className="rounded-md border border-stone-300 px-3 py-2" value={newDog.breed} onChange={(event) => setNewDog({ ...newDog, breed: event.target.value })} placeholder="Breed or mix" />
+              <BreedInput className="rounded-md border border-stone-300 px-3 py-2" value={newDog.breed} onChange={(breed) => setNewDog(withBreedValue(newDog, breed))} />
               <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.size} onChange={(event) => setNewDog({ ...newDog, size: event.target.value })}>
-                <option value="small">Small</option>
-                <option value="medium">Medium</option>
-                <option value="large">Large</option>
-                <option value="giant">Giant</option>
+                {dogSizeOptions.map((size) => <option value={size} key={size}>{size[0].toUpperCase() + size.slice(1)}</option>)}
               </select>
-              <input className="rounded-md border border-stone-300 px-3 py-2" value={newDog.avatarUrl} onChange={(event) => setNewDog({ ...newDog, avatarUrl: event.target.value })} placeholder="Dog photo URL" />
+              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.energyLevel} onChange={(event) => setNewDog({ ...newDog, energyLevel: event.target.value as DogDraft["energyLevel"] })}>
+                <option value="low">Low energy</option>
+                <option value="moderate">Moderate energy</option>
+                <option value="high">High energy</option>
+              </select>
+              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.playStyle} onChange={(event) => setNewDog({ ...newDog, playStyle: event.target.value as DogDraft["playStyle"] })}>
+                <option value="gentle">Gentle play</option>
+                <option value="balanced">Balanced play</option>
+                <option value="rough">Rough play</option>
+              </select>
+              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.socialComfort} onChange={(event) => setNewDog({ ...newDog, socialComfort: event.target.value as DogDraft["socialComfort"] })}>
+                <option value="shy">Needs slow intros</option>
+                <option value="selective">Selective with dogs</option>
+                <option value="social">Social with most dogs</option>
+              </select>
+              <div className="rounded-md border border-stone-200 bg-white p-3 md:col-span-2">
+                <p className="text-sm font-black text-stone-800">Preferred playmate sizes</p>
+                <div className="mt-2 flex flex-wrap gap-3 text-sm font-semibold">
+                  {dogSizeOptions.map((size) => (
+                    <label className="flex items-center gap-2" key={size}>
+                      <input type="checkbox" checked={newDog.preferredDogSizes.includes(size)} onChange={() => setNewDog(togglePreferredSize(newDog, size))} />
+                      {size[0].toUpperCase() + size.slice(1)}
+                    </label>
+                  ))}
+                </div>
+              </div>
               <textarea className="min-h-20 rounded-md border border-stone-300 px-3 py-2 md:col-span-2" value={newDog.notes} onChange={(event) => setNewDog({ ...newDog, notes: event.target.value })} placeholder="Notes, play style, triggers, favorite games..." />
               <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={newDog.isFriendly} onChange={(event) => setNewDog({ ...newDog, isFriendly: event.target.checked })} /> Friendly</label>
               <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={newDog.isPuppy} onChange={(event) => setNewDog({ ...newDog, isPuppy: event.target.checked })} /> Puppy</label>
@@ -420,21 +584,57 @@ function Account({
               {dogs.length === 0 && <p className="rounded-md bg-stone-50 p-4 text-sm text-stone-600">No dogs yet.</p>}
               {dogs.map((dog) => {
                 const draft = dogDrafts[dog.id] || dogDraftFromDog(dog);
+                const savedDraft = savedDogDrafts[dog.id] || dogDraftFromDog(dog);
+                const hasDogChanges = dogDraftChanged(draft, savedDraft);
                 return (
                   <article className="rounded-lg border border-stone-200 p-4" key={dog.id}>
                     <div className="flex items-center gap-3">
                       <ProfilePhotoPreview src={draft.avatarUrl} label={draft.name || "DG"} size="h-12 w-12" />
                       <input className="min-w-0 flex-1 rounded-md border border-stone-300 px-3 py-2 font-bold" value={draft.name} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, name: event.target.value } })} />
                     </div>
-                    <input className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2" value={draft.avatarUrl} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, avatarUrl: event.target.value } })} placeholder="Dog photo URL" />
+                    <div className="mt-3">
+                      <PhotoUploadControl
+                        value={draft.avatarUrl}
+                        label="Dog photo"
+                        previewLabel={draft.name || "DG"}
+                        purpose="dog_photo"
+                        size="h-12 w-12"
+                        onChange={(url) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, avatarUrl: url } })}
+                      />
+                    </div>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      <input className="rounded-md border border-stone-300 px-3 py-2" value={draft.breed} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, breed: event.target.value } })} placeholder="Breed" />
+                      <BreedInput className="rounded-md border border-stone-300 px-3 py-2" value={draft.breed} onChange={(breed) => setDogDrafts({ ...dogDrafts, [dog.id]: withBreedValue(draft, breed) })} placeholder="Breed" />
                       <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.size} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, size: event.target.value } })}>
-                        <option value="small">Small</option>
-                        <option value="medium">Medium</option>
-                        <option value="large">Large</option>
-                        <option value="giant">Giant</option>
+                        {dogSizeOptions.map((size) => <option value={size} key={size}>{size[0].toUpperCase() + size.slice(1)}</option>)}
                       </select>
+                    </div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.energyLevel} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, energyLevel: event.target.value as DogDraft["energyLevel"] } })}>
+                        <option value="low">Low energy</option>
+                        <option value="moderate">Moderate energy</option>
+                        <option value="high">High energy</option>
+                      </select>
+                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.playStyle} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, playStyle: event.target.value as DogDraft["playStyle"] } })}>
+                        <option value="gentle">Gentle play</option>
+                        <option value="balanced">Balanced play</option>
+                        <option value="rough">Rough play</option>
+                      </select>
+                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.socialComfort} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, socialComfort: event.target.value as DogDraft["socialComfort"] } })}>
+                        <option value="shy">Needs slow intros</option>
+                        <option value="selective">Selective</option>
+                        <option value="social">Social</option>
+                      </select>
+                    </div>
+                    <div className="mt-3 rounded-md border border-stone-200 bg-stone-50 p-3">
+                      <p className="text-sm font-black text-stone-800">Preferred playmate sizes</p>
+                      <div className="mt-2 flex flex-wrap gap-3 text-sm font-semibold">
+                        {dogSizeOptions.map((size) => (
+                          <label className="flex items-center gap-2" key={size}>
+                            <input type="checkbox" checked={draft.preferredDogSizes.includes(size)} onChange={() => setDogDrafts({ ...dogDrafts, [dog.id]: togglePreferredSize(draft, size) })} />
+                            {size[0].toUpperCase() + size.slice(1)}
+                          </label>
+                        ))}
+                      </div>
                     </div>
                     <textarea className="mt-3 min-h-20 w-full rounded-md border border-stone-300 px-3 py-2" value={draft.notes} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, notes: event.target.value } })} placeholder="Dog notes" />
                     <div className="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
@@ -443,7 +643,7 @@ function Account({
                       <label className="flex items-center gap-2"><input type="checkbox" checked={draft.isPublic} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, isPublic: event.target.checked } })} /> Public</label>
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <button className="rounded-md bg-stone-900 px-3 py-2 text-sm font-bold text-white" type="button" onClick={() => saveDog(dog.id)}>Save</button>
+                      {hasDogChanges && <button className="rounded-md bg-stone-900 px-3 py-2 text-sm font-bold text-white" type="button" onClick={() => saveDog(dog.id)}>Save changes</button>}
                       <button className="rounded-md border border-red-200 px-3 py-2 text-sm font-bold text-red-700" type="button" onClick={() => removeDog(dog.id)}>Remove</button>
                     </div>
                   </article>

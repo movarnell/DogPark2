@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Dog Park Meetup app icon</title>
+  <desc id="desc">Dog Park Meetup app icon showing two dogs meeting at a fenced park.</desc>
+  <rect width="512" height="512" rx="112" fill="#065F46"/>
+  <path d="M56 306C108 242 168 216 238 224C308 232 362 208 456 152V404H56V306Z" fill="#86EFAC"/>
+  <path d="M56 264C122 200 190 178 260 198C320 216 378 182 456 112V284C380 338 316 354 256 332C186 306 120 326 56 390V264Z" fill="#BAE6FD"/>
+  <path d="M98 284H414" stroke="#064E3B" stroke-width="22" stroke-linecap="round"/>
+  <path d="M128 232V396" stroke="#064E3B" stroke-width="22" stroke-linecap="round"/>
+  <path d="M196 224V396" stroke="#064E3B" stroke-width="22" stroke-linecap="round"/>
+  <path d="M316 224V396" stroke="#064E3B" stroke-width="22" stroke-linecap="round"/>
+  <path d="M384 200V396" stroke="#064E3B" stroke-width="22" stroke-linecap="round"/>
+  <path d="M256 84C298 84 332 118 332 160C332 216 256 272 256 272C256 272 180 216 180 160C180 118 214 84 256 84Z" fill="#F59E0B"/>
+  <circle cx="256" cy="160" r="34" fill="#064E3B"/>
+  <path d="M136 322C136 290 160 264 192 264H214C246 264 270 290 270 322V372H136V322Z" fill="#FFF7ED" stroke="#064E3B" stroke-width="16"/>
+  <path d="M172 274L150 242M230 274L258 242" stroke="#064E3B" stroke-width="17" stroke-linecap="round"/>
+  <circle cx="180" cy="318" r="11" fill="#064E3B"/>
+  <circle cx="224" cy="318" r="11" fill="#064E3B"/>
+  <path d="M192 350C202 358 214 358 224 350" stroke="#064E3B" stroke-width="11" stroke-linecap="round"/>
+  <path d="M250 356C250 320 276 292 312 292H330C366 292 392 320 392 356V392H250V356Z" fill="#FDE68A" stroke="#064E3B" stroke-width="16"/>
+  <path d="M290 302L270 266M346 302L372 270" stroke="#064E3B" stroke-width="17" stroke-linecap="round"/>
+  <circle cx="302" cy="344" r="11" fill="#064E3B"/>
+  <circle cx="344" cy="344" r="11" fill="#064E3B"/>
+  <path d="M314 374C324 382 336 382 346 374" stroke="#064E3B" stroke-width="11" stroke-linecap="round"/>
+</svg>
