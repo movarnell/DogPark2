@@ -70,9 +70,10 @@ async function savePlaceReference(place) {
   }
 }
 
-async function searchLocalParks(query, searchArea = null) {
+async function searchLocalParks(query, searchArea = null, options = {}) {
   const searchTerm = `%${query.query || query.location || ''}%`;
-  const [parks] = await db.query(
+  const queryRunner = options.optional ? optionalQuery : db.query.bind(db);
+  const [parks] = await queryRunner(
     `SELECT * FROM parks
      WHERE (? = '%%'
        OR name LIKE ?
@@ -254,13 +255,17 @@ router.get('/search', optionalAuth, async (req, res) => {
       } catch {
         searchAreaWarning = req.query.lat && req.query.lng ? '' : 'Search area could not be resolved; showing best text matches.';
       }
-      const results = await searchLocalParks(req.query, searchArea);
+      const results = await searchLocalParks(req.query, searchArea, { optional: true });
+      const warning = [
+        searchAreaWarning,
+        'Google Places is not configured; returned local database results.',
+      ].filter(Boolean).join(' ');
       return res.json({
         results,
         nextPageToken: null,
         googleAttributionRequired: false,
         searchArea: searchAreaResponse(searchArea),
-        warning: searchAreaWarning || 'Google Places is not configured; returned local database results.',
+        warning,
       });
     }
     handleRouteError(res, error);

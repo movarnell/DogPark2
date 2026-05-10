@@ -103,3 +103,23 @@ test('local fallback search filters parks to the resolved search area', async (t
   );
   assert.equal(typeof response.body.results[0].distanceMiles, 'number');
 });
+
+test('local fallback search degrades cleanly when the development database is unavailable', async (t) => {
+  const originalKey = config.googlePlacesApiKey;
+  const originalQuery = db.query;
+  t.after(() => {
+    config.googlePlacesApiKey = originalKey;
+    db.query = originalQuery;
+  });
+
+  config.googlePlacesApiKey = '';
+  db.query = async () => {
+    throw new Error('database unavailable');
+  };
+
+  const response = await request(createApp(), '/api/parks/search?query=Austin');
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(response.body.results, []);
+  assert.match(response.body.warning, /Google Places is not configured|local database results/);
+});
