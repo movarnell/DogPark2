@@ -1,7 +1,13 @@
 export interface HumanType {
-    id: number;
-    human_name: string;
+    id: number | string;
+    human_name?: string;
+    fullName?: string;
     email: string;
     username: string;
-    password: string;
+    role?: "member" | "moderator" | "admin";
+    bio?: string;
+    homeCity?: string;
+    avatarUrl?: string;
+    messagesEnabled?: boolean;
+    activityVisibility?: "owner_and_dog" | "dog_only" | "anonymous";
 }

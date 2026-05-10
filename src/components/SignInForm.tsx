@@ -1,112 +1,107 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { FormEvent, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { api } from "../lib/api";
+import { HumanType } from "../types/HumanType";
 
 interface SignInFormProps {
-    setSignedInUser: (user: any) => void;
+  setSignedInUser: (user: HumanType) => void;
 }
 
 function SignInForm({ setSignedInUser }: SignInFormProps) {
-    const [passwordStatus, setPasswordStatus] = useState<string>("");
-    const [emailStatus, setEmailStatus] = useState<string>("");
-    const [emailValid, setEmailValid] = useState<boolean>(true);
-    const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const authError = searchParams.get("error");
+  const authErrorMessage =
+    {
+      google_not_configured: "Google sign-in is not configured yet.",
+      apple_not_configured: "Apple sign-in is not configured yet.",
+      invalid_google_state: "Google sign-in expired. Try again.",
+      invalid_apple_state: "Apple sign-in expired. Try again.",
+      google_failed: "Google sign-in could not be completed.",
+      apple_failed: "Apple sign-in could not be completed.",
+    }[authError || ""] || "Provider sign-in could not be completed.";
 
-
-    function validateEmail(email: string) {
-        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-        if (emailRegex.test(email)) {
-            setEmailValid(true);
-            return true;
-        } else {
-            setEmailValid(false);
-            return false;
-        }
+  async function signInUser(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const user = await api.login({ email, password });
+      setSignedInUser(user);
+      navigate("/");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Failed to sign in");
+    } finally {
+      setIsSubmitting(false);
     }
+  }
 
-    function signInUser(e: any) {
-        e.preventDefault();
-        const isEmailValid = validateEmail(emailStatus);
-        if (isEmailValid) {
-            let newUserInfo = {
-                email: emailStatus,
-                password: passwordStatus
-            }
-            checkLoginPassword(newUserInfo);
-
-        }
-    }
-
-    // FIXME: When the user logs in, we need their ID to be stored in a state and we need the home page to reflect their login.
-    async function checkLoginPassword(userInfo: { email: string; password: string }) {
-        console.log('Checking login info:', userInfo.email, userInfo.password);
-        try {
-          const response = await fetch('https://backend.michaelvarnell.com:4050/api/owners/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(userInfo),
-          });
-          const data = await response.json();
-          console.log('Signed in user:', data);
-          if (response.status === 200) {
-            setSignedInUser(data);
-            toast.success('Sign in successful!');
-            setEmailStatus('');
-
-            // Store user ID in a state or context
-            const userId = data.id;
-            console.log('User ID:', userId);
-
-            // Optionally, store user ID in local storage or cookies
-            document.cookie = `user=${encodeURIComponent(JSON.stringify(data))}; path=/; max-age=43200`;
-
-            // Navigate to the home page
-            navigate('/');
-          } else {
-            toast.error('Sign in failed. Please check your credentials.');
-          }
-        } catch (error) {
-          toast.error('Failed to sign in');
-        }
-      }
-
-    return (
-        <div className="container flex items-center justify-center h-screen mx-auto">
-            <form className="p-8 mx-auto my-auto bg-white rounded-lg shadow-md w-96" onSubmit={signInUser}>
-                <h1 className='mb-5 text-3xl'>Sign In</h1>
-                <div className="mb-4">
-                    <input
-                        type="text"
-                        placeholder="Email"
-                        value={emailStatus}
-                        onChange={(e) => setEmailStatus(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    {!emailValid && <p className="mt-1 text-red-500">Invalid email</p>}
-                </div>
-                <div className="mb-4">
-                    <input
-                        type="password"
-                        placeholder="Password"
-                        value={passwordStatus}
-                        onChange={(e) => setPasswordStatus(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-                <button
-                    type="submit"
-                    className="w-full py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    Sign In
-                </button>
-                <Link to="/register" className="block mt-3 text-center text-blue-500 hover:underline">New to the app? Register here</Link>
-            </form>
-            <ToastContainer />
+  return (
+    <main className="mx-auto grid min-h-[calc(100vh-76px)] max-w-7xl place-items-center px-4 py-8">
+      <form className="w-full max-w-md rounded-lg border border-stone-200 bg-white p-6 shadow-sm" onSubmit={signInUser}>
+        <p className="text-sm font-bold uppercase tracking-wide text-emerald-800">Welcome back</p>
+        <h1 className="mt-1 text-3xl font-black">Sign in</h1>
+        {(error || authError) && (
+          <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-900">
+            {error || authErrorMessage}
+          </p>
+        )}
+        {api.appleSignInEnabled && (
+          <a
+            className="mt-5 flex w-full items-center justify-center gap-3 rounded-md bg-black px-4 py-3 font-bold text-white hover:bg-stone-800"
+            href={api.appleSignInUrl}
+          >
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-white text-sm text-black">A</span>
+            Continue with Apple
+          </a>
+        )}
+        <a
+          className="mt-5 flex w-full items-center justify-center gap-3 rounded-md border border-stone-300 bg-white px-4 py-3 font-bold text-stone-900 hover:bg-stone-50"
+          href={api.googleSignInUrl}
+        >
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-stone-100 text-sm">G</span>
+          Continue with Google
+        </a>
+        <div className="my-5 flex items-center gap-3 text-xs font-bold uppercase tracking-wide text-stone-400">
+          <span className="h-px flex-1 bg-stone-200" />
+          Email
+          <span className="h-px flex-1 bg-stone-200" />
         </div>
-    );
+        <label className="mt-5 block text-sm font-bold" htmlFor="email">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          className="mt-2 w-full rounded-md border border-stone-300 px-3 py-2 outline-none focus:border-emerald-800"
+          required
+        />
+        <label className="mt-4 block text-sm font-bold" htmlFor="password">
+          Password
+        </label>
+        <input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          className="mt-2 w-full rounded-md border border-stone-300 px-3 py-2 outline-none focus:border-emerald-800"
+          required
+        />
+        <button className="mt-6 w-full rounded-md bg-emerald-900 px-4 py-3 font-bold text-white" disabled={isSubmitting}>
+          {isSubmitting ? "Signing in..." : "Sign in"}
+        </button>
+        <Link to="/register" className="mt-4 block text-center text-sm font-bold text-emerald-900">
+          New to Dog Park Social? Create an account
+        </Link>
+      </form>
+    </main>
+  );
 }
 
 export default SignInForm;

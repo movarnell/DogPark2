@@ -1,165 +1,119 @@
-import { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import { HumanType } from '../types/HumanType';
+import { FormEvent, useEffect, useState } from "react";
+import { api } from "../lib/api";
+import { DogType } from "../types/DogType";
+import { HumanType } from "../types/HumanType";
 
-type DogType = {
-  id: number;
-  ownerId: number;
-  dog_name: string;
-  isFriendly: boolean;
-  isPuppy: boolean;
-  size: string;
-};
-
-function ManageDogs({ signedInUser }: { signedInUser: HumanType }) {
+function ManageDogs({ signedInUser }: { signedInUser: HumanType | null }) {
   const [dogs, setDogs] = useState<DogType[]>([]);
-  const [dogName, setDogName] = useState('');
-  const [is_friendly, setIs_Friendly] = useState(false);
-  const [is_puppy, setIs_Puppy] = useState(false);
-  const [dogSize, setDogSize] = useState('');
-
-
-  // NOTE: This function filters the dogs to only show the dogs that belong to the signed in user
+  const [dogName, setDogName] = useState("");
+  const [breed, setBreed] = useState("");
+  const [isFriendly, setIsFriendly] = useState(true);
+  const [isPuppy, setIsPuppy] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
+  const [dogSize, setDogSize] = useState("medium");
+  const [message, setMessage] = useState("");
 
   async function fetchDogs() {
     try {
-      const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs', {
-
-      });
-      const data = await res.json();
-      // sort to show only owners dogs
-      console.log("Owners Dogs:", data);
-      setDogs(Array.isArray(data) ? data : [])
-    } catch {
-      toast.error('Failed to fetch dogs');
+      const data = await api.getDogs();
+      setDogs(data);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Failed to fetch dogs");
     }
   }
 
-  // get the dogs from page load
   useEffect(() => {
     fetchDogs();
   }, []);
 
-  async function handleAddDog(e: any) {
-    e.preventDefault();
-    console.log("signedInUser:", signedInUser);
-    console.log("Handle add dog triggered:", dogName, is_friendly, is_puppy, dogSize);
+  async function handleAddDog(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setMessage("");
     try {
-      const res = await fetch('https://backend.michaelvarnell.com:4050/api/dogs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ownerId: signedInUser.id,
-          dog_name: dogName,
-          is_friendly: is_friendly,
-          is_puppy,
-          size: dogSize,
-        }),
+      const newDog = await api.createDog({
+        name: dogName,
+        dog_name: dogName,
+        breed,
+        isFriendly,
+        isPuppy,
+        isPublic,
+        size: dogSize,
       });
-      const newDog = await res.json();
-      setDogs([...dogs, newDog]);
-      setDogName('');
-      setIs_Friendly(false);
-      setIs_Puppy(false);
-      setDogSize('');
-      toast.success('Dog added successfully');
-    } catch {
-      toast.error('Failed to add dog');
+      setDogs([newDog, ...dogs]);
+      setDogName("");
+      setBreed("");
+      setIsFriendly(true);
+      setIsPuppy(false);
+      setIsPublic(true);
+      setDogSize("medium");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Failed to add dog");
     }
   }
 
-  //SECTION - Remove Dog
-  async function handleRemoveDog(id: number) {
-    try {
-      const res = await fetch(`https://backend.michaelvarnell.com:4050/api/dogs/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      if (res.ok) {
-        toast.success('Dog removed');
-        setDogs(dogs.filter(d => d.id !== id));
-      } else {
-        toast.error('Error removing dog');
-      }
-    } catch {
-      toast.error('Server error');
-    }
+  async function handleRemoveDog(id: string) {
+    await api.deleteDog(id);
+    setDogs(dogs.filter((dog) => dog.id !== id));
   }
-  //SECTION Remove Dog END
 
   return (
-    <div className="container mx-auto my-8">
-      <h1 className="mb-4 text-2xl font-bold">Manage Dogs</h1>
-      <ul>
-        {dogs && dogs.map(dog => (
-          <li key={dog.id} className="flex items-center justify-between mb-2">
-            <span>{dog.dog_name}</span>
-            <span>{dog.size}</span>
-            <span>{dog.isFriendly ? 'Friendly' : 'Not Friendly'}</span>
-            <span>{dog.isPuppy ? 'Puppy' : 'Not Puppy'}</span>
-            <span>{dog.ownerId}</span>
-            <span>{dog.id}</span>
-            <button
-            type='button'
-              className="px-2 py-1 text-white bg-red-600 rounded"
-              onClick={() => handleRemoveDog(dog.id)}
-            >
-              Remove
-            </button>
-          </li>
-        ))}
-      </ul>
-      <form onSubmit={handleAddDog} className="flex flex-col p-4 mt-4 bg-gray-100 rounded">
-        <div className="flex flex-wrap items-center gap-4 mb-4">
-          <input
-            value={dogName}
-            onChange={e => setDogName(e.target.value)}
-            type="text"
-            placeholder="New Dog Name"
-            className="p-2 border rounded"
-          />
-          <label className="flex items-center space-x-1">
-            <input
-              type="checkbox"
-              checked={is_friendly}
-              onChange={e => setIs_Friendly(e.target.checked)}
-            />
-            <span>This dog is not friendly</span>
-          </label>
-          <label className="flex items-center space-x-1">
-            <input
-              type="checkbox"
-              checked={is_puppy}
-              onChange={e => setIs_Puppy(e.target.checked)}
-            />
-            <span>This dog is not a puppy</span>
-          </label>
-          <label htmlFor="dogSize" className="flex items-center space-x-1">
-            Dog Size:
-          </label>
-          <select
-            id="dogSize"
-            value={dogSize}
-            onChange={e => setDogSize(e.target.value)}
-            className="p-2 border rounded"
-          >
-            <option value="">Select size</option>
-            <option value="small">Small (0-20lbs)</option>
-            <option value="medium">Medium (20-40lbs)</option>
-            <option value="large">Large (40+ lbs)</option>
+    <main className="mx-auto max-w-7xl px-4 py-6">
+      <section className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
+        <p className="text-sm font-bold uppercase tracking-wide text-emerald-800">Account</p>
+        <h1 className="mt-1 text-3xl font-black">Manage dogs</h1>
+        <p className="mt-2 text-stone-600">Signed in as {signedInUser?.username}</p>
+        {message && <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">{message}</p>}
+      </section>
+
+      <section className="mt-6 grid gap-6 lg:grid-cols-[380px_1fr]">
+        <form onSubmit={handleAddDog} className="h-fit rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
+          <h2 className="text-xl font-black">Add dog</h2>
+          <input className="mt-4 w-full rounded-md border border-stone-300 px-3 py-2" value={dogName} onChange={(event) => setDogName(event.target.value)} placeholder="Dog name" required />
+          <input className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2" value={breed} onChange={(event) => setBreed(event.target.value)} placeholder="Breed or mix" />
+          <select className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2" value={dogSize} onChange={(event) => setDogSize(event.target.value)}>
+            <option value="small">Small (0-20 lbs)</option>
+            <option value="medium">Medium (20-40 lbs)</option>
+            <option value="large">Large (40-90 lbs)</option>
+            <option value="giant">Giant (90+ lbs)</option>
           </select>
+          <label className="mt-4 flex items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" checked={isFriendly} onChange={(event) => setIsFriendly(event.target.checked)} />
+            Friendly with other dogs
+          </label>
+          <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" checked={isPuppy} onChange={(event) => setIsPuppy(event.target.checked)} />
+            Puppy
+          </label>
+          <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+            <input type="checkbox" checked={isPublic} onChange={(event) => setIsPublic(event.target.checked)} />
+            Show on public visit cards
+          </label>
+          <button type="submit" className="mt-5 w-full rounded-md bg-emerald-900 px-4 py-2 font-bold text-white">
+            Add dog
+          </button>
+        </form>
+        <div className="grid gap-4 md:grid-cols-2">
+          {dogs.map((dog) => (
+            <article className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm" key={dog.id}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-black">{dog.name || dog.dog_name}</h2>
+                  <p className="mt-1 text-sm text-stone-600">{[dog.breed, dog.size].filter(Boolean).join(" · ")}</p>
+                </div>
+                <button className="rounded-md border border-red-200 px-3 py-1 text-sm font-bold text-red-700" onClick={() => handleRemoveDog(dog.id)}>
+                  Remove
+                </button>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-bold">{dog.isFriendly ? "Friendly" : "Needs space"}</span>
+                <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-bold">{dog.isPuppy ? "Puppy" : "Adult"}</span>
+                <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-bold">{dog.isPublic ? "Public" : "Private"}</span>
+              </div>
+            </article>
+          ))}
         </div>
-        <button
-          type="submit"
-          className="w-full px-4 py-2 text-white bg-blue-600 rounded"
-          onSubmit={handleAddDog}
-        >
-          Add Dog
-        </button>
-      </form>
-    </div>
+      </section>
+    </main>
   );
 }
 

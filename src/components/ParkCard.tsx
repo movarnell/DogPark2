@@ -1,115 +1,54 @@
-import { ParkType } from '../types/ParkType';
+import { Link } from "react-router-dom";
+import { api } from "../lib/api";
+import { parkAmenityList, parkDisplayName, parkStableId } from "../lib/park";
+import { ParkType } from "../types/ParkType";
 
-function ParkCard({ park, index }: { park: ParkType, index: number }) {
-  console.log(park);
-
-  // Parse the amenities string into an array
-  const amenitiesArray = JSON.parse(park.amenities);
-  console.log(park);
-
-  function determineAmenityColor(amenity: string) {
-
-      switch (true) {
-          case "water station" === amenity:
-              return "text-gray-900 text-base bg-blue-300 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "adjacent to golf course" === amenity:
-              return "text-gray-900 text-base bg-yellow-500 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "separate areas for large and small dogs" === amenity:
-              return "text-gray-900 text-base bg-purple-400 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "agility equipment" === amenity:
-              return "text-gray-900 text-base bg-red-300 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "water fountains" === amenity:
-              return "text-gray-900 text-base bg-blue-200 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "restrooms" === amenity:
-              return "text-gray-900 text-base bg-yellow-500 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "scenic trails" === amenity:
-              return "text-gray-900 text-base bg-green-200 rounded-full my-0.5 px-3 py-1 inline-block";
-          case "water access" === amenity:
-              return "text-gray-900 text-base bg-blue-400 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "splash pads" === amenity:
-              return "text-gray-900 text-base bg-blue-500 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "playground equipment" === amenity:
-              return "text-gray-900 text-base bg-yellow-300 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "training yard" === amenity:
-              return "text-gray-900 text-base bg-purple-200 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "shade" === amenity:
-              return "text-gray-900 text-base bg-gray-200 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "chairs" === amenity:
-              return "text-gray-900 text-base bg-yellow-400 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "doggie bathtub" === amenity:
-              return "text-gray-900 text-base bg-pink-200 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "proximity to bike trails" === amenity:
-              return "text-gray-900 text-base bg-green-400 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "shade structures" === amenity:
-              return "text-gray-900 text-base bg-gray-300 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "play options" === amenity:
-              return "text-gray-900 text-base bg-orange-300 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "wrought iron fencing" === amenity:
-              return "text-gray-900 text-base bg-teal-300 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "dog station" === amenity:
-              return "text-gray-900 text-base bg-rose-400 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "floating boardwalk" === amenity:
-              return "text-gray-900 text-base bg-blue-500 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "benches" === amenity:
-              return "text-gray-900 text-base bg-amber-500 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "fenced area" === amenity:
-              return "text-gray-900 text-base bg-fuchsia-400 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "open space" === amenity:
-              return "text-gray-900 text-base bg-green-500 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          case "walking trails" === amenity:
-              return "text-gray-900 text-base bg-green-600 rounded-full my-0.5 px-3 py-1 inline-block";
-              break;
-          default:
-              return "text-gray-900 text-base bg-gray-100 rounded-full my-0.5 px-3 py-1 inline-block";
-
-      }
-  }
-
+function ParkCard({ park }: { park: ParkType }) {
+  const amenities = parkAmenityList(park).slice(0, 5);
+  const parkId = parkStableId(park);
+  const imageUrl = api.assetUrl(park.photoUrl || park.image_URL);
 
   return (
-    <div key={index} className="p-6 overflow-hidden">
-      {/* {park.image_URL && <img className="w-full" src={park.image_URL} alt={park.park_name} />} */}
-      <div className="px-6 py-4">
-        <h1 className="mb-2 text-2xl font-bold text-balance">{park.park_name}</h1>
-        <p className="mt-4 font-bold">About:</p>
-        <p className="text-base text-gray-700">{park.notes}</p>
-        <p className="text-base text-gray-700">Located in {park.location}.</p>
-        <p className="text-base font-bold text-gray-700">Address: </p>
-        <p className="text-base text-gray-700">{park.address}</p>
-        <p className="text-base text-gray-700"><b>Size:</b> {park.size}</p>
-        <p><b>Public:</b> <span className={park.is_public ? "text-green-500" : "text-red-500"}>{park.is_public ? "Public" : "Private"}</span></p>
-        <p className="mt-4 font-bold">Park Amenities</p>
-        <ul className="list-disc list-inside">
-          {amenitiesArray.map((amenity: string, idx: number) => (
-            <li key={idx} className={determineAmenityColor(amenity)}>
-              {amenity}
-            </li>
-          ))}
-        </ul>
+    <article className="flex h-full flex-col overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
+      {imageUrl ? (
+        <img className="h-44 w-full object-cover" src={imageUrl} alt={parkDisplayName(park)} />
+      ) : (
+        <div className="grid h-44 place-items-center bg-emerald-950 text-sm font-bold uppercase tracking-wide text-emerald-50">
+          Dog park
+        </div>
+      )}
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="text-xl font-black leading-tight">{parkDisplayName(park)}</h2>
+          {park.rating && (
+            <span className="rounded-md bg-amber-100 px-2 py-1 text-sm font-bold text-amber-900">
+              {park.rating.toFixed(1)}
+            </span>
+          )}
+        </div>
+        <p className="mt-2 text-sm leading-6 text-stone-600">{park.address || park.location}</p>
+        <div className="mt-4 rounded-md border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-950">
+          Open this park to see planned visits and let others know when you are going.
+        </div>
+        {amenities.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {amenities.map((amenity) => (
+              <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700" key={amenity}>
+                {amenity}
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="mt-auto flex items-center justify-between pt-5">
+          <span className="text-xs font-bold uppercase tracking-wide text-stone-500">
+            {park.source === "google" ? "Google Places" : "Community"}
+          </span>
+          <Link className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white" to={`/parks/${encodeURIComponent(parkId)}`}>
+            Plan visit
+          </Link>
+        </div>
       </div>
-    </div>
+    </article>
   );
 }
 

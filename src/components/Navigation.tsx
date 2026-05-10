@@ -1,47 +1,127 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { api } from "../lib/api";
 import { HumanType } from "../types/HumanType";
 
-function Navigation({ signedInUser }: { signedInUser: HumanType | null }) {
+function getDisplayName(user: HumanType) {
+  return user.fullName || user.human_name || user.username || user.email;
+}
 
-    function signOut(e: any) {
-        e.preventDefault();
-        document.cookie = 'user=; path=/; max-age=0';
-        window.location.reload();
-    }
+function getInitials(user: HumanType) {
+  const displayName = getDisplayName(user);
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 
-//
-    return (
-        <nav className="p-4 bg-gray-800">
-            <div className="container flex items-center justify-between mx-auto">
-                <div className="text-lg font-bold text-white">
-                    <Link to="/">Northwest Arkansas Dog Park Scheduler</Link>
-                </div>
-                <div className="flex space-x-4">
-                    {signedInUser && (
-                        <Link to="/ManageDogs" className="text-white">
-                            Manage Dogs
-                            </Link>
-                            )}
-                    <Link to="/parks" className="text-white">
-                        Parks
-                    </Link>
-                    <Link to="/about" className="text-white">
-                        About
-                    </Link>
-                    {
-                    !signedInUser && <Link to="/login" className="text-white">
-                        Sign In/Register
-                    </Link>
-                    }
-                    {signedInUser && (
-                        <Link to="/" className="text-white" onClick={(e) => signOut(e)}>
-                            Sign Out
-                            </Link>
-                            )}
-                </div>
+  return initials || user.email[0]?.toUpperCase() || "U";
+}
+
+function UserAvatar({ user }: { user: HumanType }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  return (
+    <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white">
+      {user.avatarUrl && !imageFailed ? (
+        <img
+          className="h-full w-full object-cover"
+          src={user.avatarUrl}
+          alt=""
+          referrerPolicy="no-referrer"
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        getInitials(user)
+      )}
+    </span>
+  );
+}
+
+function Navigation({
+  signedInUser,
+  setSignedInUser,
+}: {
+  signedInUser: HumanType | null;
+  setSignedInUser: (user: HumanType | null) => void;
+}) {
+  const navigate = useNavigate();
+
+  async function signOut() {
+    await api.logout().catch(() => undefined);
+    setSignedInUser(null);
+    navigate("/");
+  }
+
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
+    `rounded-md px-3 py-2 text-sm font-medium transition ${
+      isActive ? "bg-emerald-900 text-white" : "text-stone-700 hover:bg-stone-100"
+    }`;
+  const displayName = signedInUser ? getDisplayName(signedInUser) : "";
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur">
+      <nav className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
+        <Link to="/" className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-lg bg-emerald-900 text-lg font-black text-white">
+            DP
+          </span>
+          <span>
+            <span className="block text-base font-black tracking-tight">Dog Park Social</span>
+            <span className="block text-xs font-medium text-stone-500">Post plans. Meet up. Share conditions.</span>
+          </span>
+        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <NavLink to="/parks" className={linkClass}>
+            Parks
+          </NavLink>
+          {signedInUser && (
+            <>
+              <NavLink to="/community" className={linkClass}>
+                Community
+              </NavLink>
+              <NavLink to="/messages" className={linkClass}>
+                Messages
+              </NavLink>
+              <NavLink to="/account" className={linkClass}>
+                Account
+              </NavLink>
+              {signedInUser.role === "admin" && (
+                <NavLink to="/admin" className={linkClass}>
+                  Moderation
+                </NavLink>
+              )}
+            </>
+          )}
+          {!signedInUser ? (
+            <NavLink to="/login" className={linkClass}>
+              Sign in
+            </NavLink>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="flex min-w-0 items-center gap-2 rounded-full border border-stone-200 bg-white py-1 pl-1 pr-3 shadow-sm">
+                <UserAvatar user={signedInUser} />
+                <span className="min-w-0 leading-tight">
+                  <span className="block max-w-36 truncate text-sm font-bold text-stone-950">{displayName}</span>
+                  <span className="block max-w-36 truncate text-xs font-medium text-stone-500">
+                    @{signedInUser.username}
+                  </span>
+                </span>
+              </span>
+              <button
+                className="rounded-full border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
+                onClick={signOut}
+              >
+                Sign out
+              </button>
             </div>
-        </nav>
-    );
+          )}
+        </div>
+      </nav>
+    </header>
+  );
 }
 
 export default Navigation;
