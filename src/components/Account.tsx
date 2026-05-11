@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { canonicalBreedKey, DOG_BREEDS } from "../lib/breedCatalog";
 import { api, FriendsResponse, UserBrief, Visit } from "../lib/api";
@@ -96,9 +96,9 @@ function ProfilePhotoPreview({ src, label, size = "h-14 w-14" }: { src?: string;
   const imageSrc = api.assetUrl(src);
 
   return (
-    <span className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-sm font-black text-white ${size}`}>
+    <span className={`grid shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-sm font-black text-white ${size}`} aria-label={`${label} photo`}>
       {imageSrc && !failed ? (
-        <img className="h-full w-full object-cover" src={imageSrc} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+        <img className="h-full w-full object-cover" src={imageSrc} alt={`${label} photo`} referrerPolicy="no-referrer" onError={() => setFailed(true)} />
       ) : (
         label.slice(0, 2).toUpperCase()
       )}
@@ -111,12 +111,16 @@ function BreedInput({
   onChange,
   className,
   placeholder = "Breed or mix",
+  ariaLabel = "Dog breed",
 }: {
   value: string;
   onChange: (value: string) => void;
   className?: string;
   placeholder?: string;
+  ariaLabel?: string;
 }) {
+  const breedListId = useId();
+
   return (
     <>
       <input
@@ -124,9 +128,10 @@ function BreedInput({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        list="dog-breed-options"
+        list={breedListId}
+        aria-label={ariaLabel}
       />
-      <datalist id="dog-breed-options">
+      <datalist id={breedListId}>
         {DOG_BREEDS.map((breed) => (
           <option value={breed} key={breed} />
         ))}
@@ -189,17 +194,28 @@ function PhotoUploadControl({
           <div className="mt-2 flex flex-wrap gap-2">
             <label className="inline-flex cursor-pointer items-center rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-bold text-stone-800">
               {value ? "Change photo" : "Upload photo"}
-              <input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => uploadPhoto(event.target.files?.[0])} />
+              <input
+                className="sr-only"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                aria-label={`${value ? "Change" : "Upload"} ${label.toLowerCase()}`}
+                onChange={(event) => uploadPhoto(event.target.files?.[0])}
+              />
             </label>
             {value && (
-              <button className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-bold text-stone-700" type="button" onClick={() => onChange("")}>
+              <button
+                className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-bold text-stone-700"
+                type="button"
+                aria-label={`Remove ${label.toLowerCase()}`}
+                onClick={() => onChange("")}
+              >
                 Remove
               </button>
             )}
           </div>
         </div>
       </div>
-      {status && <p className="mt-2 text-xs font-semibold text-emerald-900">{status}</p>}
+      {status && <p className="mt-2 text-xs font-semibold text-emerald-900" role="status">{status}</p>}
     </div>
   );
 }
@@ -425,7 +441,7 @@ function Account({
         <p className="text-sm font-bold uppercase tracking-wide text-emerald-800">Account</p>
         <h1 className="mt-1 text-3xl font-black">Profile, dogs, and visits</h1>
         <p className="mt-2 text-stone-600">Keep your owner profile current and manage the dogs and park plans tied to it.</p>
-        {message && <p className="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{message}</p>}
+        {message && <p className="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-900" role="status">{message}</p>}
       </section>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-[360px_1fr]">
@@ -485,7 +501,12 @@ function Account({
                   {friends.friends.map((friend) => (
                     <div className="flex items-center justify-between gap-3 rounded-md bg-white p-3" key={friend.id}>
                       <span className="min-w-0 truncate text-sm font-bold">{userLabel(friend.user)}</span>
-                      <button className="rounded-md border border-red-200 px-3 py-2 text-sm font-bold text-red-700" type="button" onClick={() => removeFriend(friend.user.id)}>
+                      <button
+                        className="rounded-md border border-red-200 px-3 py-2 text-sm font-bold text-red-700"
+                        type="button"
+                        aria-label={`Remove ${userLabel(friend.user)} as a friend`}
+                        onClick={() => removeFriend(friend.user.id)}
+                      >
                         Remove
                       </button>
                     </div>
@@ -499,10 +520,10 @@ function Account({
                         <div className="rounded-md bg-white p-3" key={request.id}>
                           <p className="text-sm font-bold">{userLabel(request.user)}</p>
                           <div className="mt-2 flex gap-2">
-                            <button className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white" type="button" onClick={() => respondToFriendRequest(request.id, true)}>
+                            <button className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white" type="button" aria-label={`Accept friend request from ${userLabel(request.user)}`} onClick={() => respondToFriendRequest(request.id, true)}>
                               Accept
                             </button>
-                            <button className="rounded-md border border-stone-300 px-3 py-2 text-sm font-bold text-stone-800" type="button" onClick={() => respondToFriendRequest(request.id, false)}>
+                            <button className="rounded-md border border-stone-300 px-3 py-2 text-sm font-bold text-stone-800" type="button" aria-label={`Decline friend request from ${userLabel(request.user)}`} onClick={() => respondToFriendRequest(request.id, false)}>
                               Decline
                             </button>
                           </div>
@@ -519,7 +540,7 @@ function Account({
                   {blockedUsers.map((user) => (
                     <div className="flex items-center justify-between gap-3 rounded-md bg-white p-3" key={user.id}>
                       <span className="min-w-0 truncate text-sm font-bold">{userLabel(user)}</span>
-                      <button className="rounded-md border border-stone-300 px-3 py-2 text-sm font-bold text-stone-800" type="button" onClick={() => unblockUser(user.id)}>
+                      <button className="rounded-md border border-stone-300 px-3 py-2 text-sm font-bold text-stone-800" type="button" aria-label={`Unblock ${userLabel(user)}`} onClick={() => unblockUser(user.id)}>
                         Unblock
                       </button>
                     </div>
@@ -542,22 +563,22 @@ function Account({
                   onChange={(url) => setNewDog({ ...newDog, avatarUrl: url })}
                 />
               </div>
-              <input className="rounded-md border border-stone-300 px-3 py-2" value={newDog.name} onChange={(event) => setNewDog({ ...newDog, name: event.target.value })} placeholder="Dog name" required />
-              <BreedInput className="rounded-md border border-stone-300 px-3 py-2" value={newDog.breed} onChange={(breed) => setNewDog(withBreedValue(newDog, breed))} />
-              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.size} onChange={(event) => setNewDog({ ...newDog, size: event.target.value })}>
+              <input className="rounded-md border border-stone-300 px-3 py-2" value={newDog.name} onChange={(event) => setNewDog({ ...newDog, name: event.target.value })} placeholder="Dog name" aria-label="New dog name" required />
+              <BreedInput className="rounded-md border border-stone-300 px-3 py-2" value={newDog.breed} onChange={(breed) => setNewDog(withBreedValue(newDog, breed))} ariaLabel="New dog breed" />
+              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.size} aria-label="New dog size" onChange={(event) => setNewDog({ ...newDog, size: event.target.value })}>
                 {dogSizeOptions.map((size) => <option value={size} key={size}>{size[0].toUpperCase() + size.slice(1)}</option>)}
               </select>
-              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.energyLevel} onChange={(event) => setNewDog({ ...newDog, energyLevel: event.target.value as DogDraft["energyLevel"] })}>
+              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.energyLevel} aria-label="New dog energy level" onChange={(event) => setNewDog({ ...newDog, energyLevel: event.target.value as DogDraft["energyLevel"] })}>
                 <option value="low">Low energy</option>
                 <option value="moderate">Moderate energy</option>
                 <option value="high">High energy</option>
               </select>
-              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.playStyle} onChange={(event) => setNewDog({ ...newDog, playStyle: event.target.value as DogDraft["playStyle"] })}>
+              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.playStyle} aria-label="New dog play style" onChange={(event) => setNewDog({ ...newDog, playStyle: event.target.value as DogDraft["playStyle"] })}>
                 <option value="gentle">Gentle play</option>
                 <option value="balanced">Balanced play</option>
                 <option value="rough">Rough play</option>
               </select>
-              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.socialComfort} onChange={(event) => setNewDog({ ...newDog, socialComfort: event.target.value as DogDraft["socialComfort"] })}>
+              <select className="rounded-md border border-stone-300 px-3 py-2" value={newDog.socialComfort} aria-label="New dog social comfort" onChange={(event) => setNewDog({ ...newDog, socialComfort: event.target.value as DogDraft["socialComfort"] })}>
                 <option value="shy">Needs slow intros</option>
                 <option value="selective">Selective with dogs</option>
                 <option value="social">Social with most dogs</option>
@@ -573,7 +594,7 @@ function Account({
                   ))}
                 </div>
               </div>
-              <textarea className="min-h-20 rounded-md border border-stone-300 px-3 py-2 md:col-span-2" value={newDog.notes} onChange={(event) => setNewDog({ ...newDog, notes: event.target.value })} placeholder="Notes, play style, triggers, favorite games..." />
+              <textarea className="min-h-20 rounded-md border border-stone-300 px-3 py-2 md:col-span-2" value={newDog.notes} onChange={(event) => setNewDog({ ...newDog, notes: event.target.value })} placeholder="Notes, play style, triggers, favorite games..." aria-label="New dog notes" />
               <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={newDog.isFriendly} onChange={(event) => setNewDog({ ...newDog, isFriendly: event.target.checked })} /> Friendly</label>
               <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={newDog.isPuppy} onChange={(event) => setNewDog({ ...newDog, isPuppy: event.target.checked })} /> Puppy</label>
               <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={newDog.isPublic} onChange={(event) => setNewDog({ ...newDog, isPublic: event.target.checked })} /> Show on visits</label>
@@ -590,7 +611,7 @@ function Account({
                   <article className="rounded-lg border border-stone-200 p-4" key={dog.id}>
                     <div className="flex items-center gap-3">
                       <ProfilePhotoPreview src={draft.avatarUrl} label={draft.name || "DG"} size="h-12 w-12" />
-                      <input className="min-w-0 flex-1 rounded-md border border-stone-300 px-3 py-2 font-bold" value={draft.name} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, name: event.target.value } })} />
+                      <input className="min-w-0 flex-1 rounded-md border border-stone-300 px-3 py-2 font-bold" value={draft.name} aria-label={`Name for ${draft.name || "dog"}`} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, name: event.target.value } })} />
                     </div>
                     <div className="mt-3">
                       <PhotoUploadControl
@@ -603,23 +624,23 @@ function Account({
                       />
                     </div>
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                      <BreedInput className="rounded-md border border-stone-300 px-3 py-2" value={draft.breed} onChange={(breed) => setDogDrafts({ ...dogDrafts, [dog.id]: withBreedValue(draft, breed) })} placeholder="Breed" />
-                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.size} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, size: event.target.value } })}>
+                      <BreedInput className="rounded-md border border-stone-300 px-3 py-2" value={draft.breed} onChange={(breed) => setDogDrafts({ ...dogDrafts, [dog.id]: withBreedValue(draft, breed) })} placeholder="Breed" ariaLabel={`Breed for ${draft.name || "dog"}`} />
+                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.size} aria-label={`Size for ${draft.name || "dog"}`} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, size: event.target.value } })}>
                         {dogSizeOptions.map((size) => <option value={size} key={size}>{size[0].toUpperCase() + size.slice(1)}</option>)}
                       </select>
                     </div>
                     <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.energyLevel} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, energyLevel: event.target.value as DogDraft["energyLevel"] } })}>
+                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.energyLevel} aria-label={`Energy level for ${draft.name || "dog"}`} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, energyLevel: event.target.value as DogDraft["energyLevel"] } })}>
                         <option value="low">Low energy</option>
                         <option value="moderate">Moderate energy</option>
                         <option value="high">High energy</option>
                       </select>
-                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.playStyle} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, playStyle: event.target.value as DogDraft["playStyle"] } })}>
+                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.playStyle} aria-label={`Play style for ${draft.name || "dog"}`} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, playStyle: event.target.value as DogDraft["playStyle"] } })}>
                         <option value="gentle">Gentle play</option>
                         <option value="balanced">Balanced play</option>
                         <option value="rough">Rough play</option>
                       </select>
-                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.socialComfort} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, socialComfort: event.target.value as DogDraft["socialComfort"] } })}>
+                      <select className="rounded-md border border-stone-300 px-3 py-2" value={draft.socialComfort} aria-label={`Social comfort for ${draft.name || "dog"}`} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, socialComfort: event.target.value as DogDraft["socialComfort"] } })}>
                         <option value="shy">Needs slow intros</option>
                         <option value="selective">Selective</option>
                         <option value="social">Social</option>
@@ -636,15 +657,15 @@ function Account({
                         ))}
                       </div>
                     </div>
-                    <textarea className="mt-3 min-h-20 w-full rounded-md border border-stone-300 px-3 py-2" value={draft.notes} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, notes: event.target.value } })} placeholder="Dog notes" />
+                    <textarea className="mt-3 min-h-20 w-full rounded-md border border-stone-300 px-3 py-2" value={draft.notes} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, notes: event.target.value } })} placeholder="Dog notes" aria-label={`Notes for ${draft.name || "dog"}`} />
                     <div className="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
                       <label className="flex items-center gap-2"><input type="checkbox" checked={draft.isFriendly} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, isFriendly: event.target.checked } })} /> Friendly</label>
                       <label className="flex items-center gap-2"><input type="checkbox" checked={draft.isPuppy} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, isPuppy: event.target.checked } })} /> Puppy</label>
                       <label className="flex items-center gap-2"><input type="checkbox" checked={draft.isPublic} onChange={(event) => setDogDrafts({ ...dogDrafts, [dog.id]: { ...draft, isPublic: event.target.checked } })} /> Public</label>
                     </div>
                     <div className="mt-4 flex gap-2">
-                      {hasDogChanges && <button className="rounded-md bg-stone-900 px-3 py-2 text-sm font-bold text-white" type="button" onClick={() => saveDog(dog.id)}>Save changes</button>}
-                      <button className="rounded-md border border-red-200 px-3 py-2 text-sm font-bold text-red-700" type="button" onClick={() => removeDog(dog.id)}>Remove</button>
+                      {hasDogChanges && <button className="rounded-md bg-stone-900 px-3 py-2 text-sm font-bold text-white" type="button" aria-label={`Save changes for ${draft.name || "dog"}`} onClick={() => saveDog(dog.id)}>Save changes</button>}
+                      <button className="rounded-md border border-red-200 px-3 py-2 text-sm font-bold text-red-700" type="button" aria-label={`Remove ${draft.name || "dog"}`} onClick={() => removeDog(dog.id)}>Remove</button>
                     </div>
                   </article>
                 );
@@ -671,8 +692,8 @@ function Account({
                         <p className="mt-1 text-sm text-stone-600">Status: {visit.status.replace("_", " ")}</p>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {visit.status === "planned" && <button className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white" onClick={() => checkIn(visit.id)}>Check in</button>}
-                        <button className="rounded-md border border-red-200 px-3 py-2 text-sm font-bold text-red-700" onClick={() => cancelVisit(visit.id)}>Cancel</button>
+                        {visit.status === "planned" && <button className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white" type="button" aria-label={`Check in at ${parkName}`} onClick={() => checkIn(visit.id)}>Check in</button>}
+                        <button className="rounded-md border border-red-200 px-3 py-2 text-sm font-bold text-red-700" type="button" aria-label={`Cancel visit at ${parkName}`} onClick={() => cancelVisit(visit.id)}>Cancel</button>
                       </div>
                     </div>
                     <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -703,8 +724,8 @@ function Account({
                         <option value="Quiet visit">Quiet visit</option>
                       </select>
                     </label>
-                    <textarea className="mt-3 min-h-16 w-full rounded-md border border-stone-300 px-3 py-2" value={draft.notes} onChange={(event) => setVisitDrafts({ ...visitDrafts, [visit.id]: { ...draft, notes: event.target.value } })} placeholder="Visit notes" />
-                    <button className="mt-3 rounded-md bg-stone-900 px-3 py-2 text-sm font-bold text-white" onClick={() => saveVisit(visit.id)}>Save visit</button>
+                    <textarea className="mt-3 min-h-16 w-full rounded-md border border-stone-300 px-3 py-2" value={draft.notes} onChange={(event) => setVisitDrafts({ ...visitDrafts, [visit.id]: { ...draft, notes: event.target.value } })} placeholder="Visit notes" aria-label={`Visit notes for ${parkName}`} />
+                    <button className="mt-3 rounded-md bg-stone-900 px-3 py-2 text-sm font-bold text-white" type="button" aria-label={`Save visit at ${parkName}`} onClick={() => saveVisit(visit.id)}>Save visit</button>
                   </article>
                 );
               })}

@@ -68,9 +68,9 @@ function DogVisitAvatar({ visit }: { visit: Visit }) {
   const imageUrl = api.assetUrl(visit.dog_avatar_url);
 
   return (
-    <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white">
+    <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white" aria-label={`${visit.dog_name || "Dog"} photo`}>
       {imageUrl && !failed ? (
-        <img className="h-full w-full object-cover" src={imageUrl} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+        <img className="h-full w-full object-cover" src={imageUrl} alt={`${visit.dog_name || "Dog"} photo`} referrerPolicy="no-referrer" onError={() => setFailed(true)} />
       ) : (
         label
       )}
@@ -84,9 +84,9 @@ function SelectedDogAvatar({ dog }: { dog: DogType }) {
   const imageUrl = api.assetUrl(dog.avatarUrl);
 
   return (
-    <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white">
+    <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white" aria-label={`${dogDisplayName(dog)} photo`}>
       {imageUrl && !failed ? (
-        <img className="h-full w-full object-cover" src={imageUrl} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+        <img className="h-full w-full object-cover" src={imageUrl} alt={`${dogDisplayName(dog)} photo`} referrerPolicy="no-referrer" onError={() => setFailed(true)} />
       ) : (
         label
       )}
@@ -128,7 +128,14 @@ function BusyTimesCard({ busyTimes }: { busyTimes: NonNullable<ParkType["busyTim
               {day.slots.map((slot) => (
                 <div className="grid grid-cols-[72px_minmax(0,1fr)_82px] items-center gap-3" key={`${day.date}-${slot.hour}`}>
                   <span className="text-sm font-bold text-stone-700">{slot.hourLabel}</span>
-                  <span className="h-3 overflow-hidden rounded-full bg-stone-200">
+                  <span
+                    className="h-3 overflow-hidden rounded-full bg-stone-200"
+                    role="meter"
+                    aria-label={`${slot.hourLabel}: ${slot.dogCount} ${slot.dogCount === 1 ? "dog" : "dogs"} planned`}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={slot.intensity}
+                  >
                     <span className="block h-full rounded-full bg-emerald-800" style={{ width: `${slot.intensity}%` }} />
                   </span>
                   <span className="text-right text-sm font-bold text-stone-700">
@@ -454,24 +461,27 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
             </p>
           )}
           <div className="grid grid-cols-3 gap-2">
-            <button className="rounded-md border border-emerald-600 px-2 py-2 text-sm font-bold text-white hover:bg-white/10" type="button" onClick={() => setQuickVisitTime("now")}>
+            <button className="rounded-md border border-emerald-600 px-2 py-2 text-sm font-bold text-white hover:bg-white/10" type="button" aria-label="Set visit time to now" onClick={() => setQuickVisitTime("now")}>
               Now
             </button>
-            <button className="rounded-md border border-emerald-600 px-2 py-2 text-sm font-bold text-white hover:bg-white/10" type="button" onClick={() => setQuickVisitTime("thirty")}>
+            <button className="rounded-md border border-emerald-600 px-2 py-2 text-sm font-bold text-white hover:bg-white/10" type="button" aria-label="Set visit time to 30 minutes from now" onClick={() => setQuickVisitTime("thirty")}>
               In 30 min
             </button>
-            <button className="rounded-md border border-emerald-600 px-2 py-2 text-sm font-bold text-white hover:bg-white/10" type="button" onClick={() => setQuickVisitTime("evening")}>
+            <button className="rounded-md border border-emerald-600 px-2 py-2 text-sm font-bold text-white hover:bg-white/10" type="button" aria-label="Set visit time to this evening" onClick={() => setQuickVisitTime("evening")}>
               This evening
             </button>
           </div>
-          <input
-            className="w-full rounded-md border border-emerald-700 bg-white px-3 py-2 text-stone-950"
-            type="datetime-local"
-            name="startsAt"
-            value={visitStartsAt}
-            onChange={(event) => setVisitStartsAt(event.target.value)}
-            onInput={(event) => setVisitStartsAt(event.currentTarget.value)}
-          />
+          <label className="block">
+            <span className="text-sm font-bold text-emerald-50">Arrival time</span>
+            <input
+              className="mt-1 w-full rounded-md border border-emerald-700 bg-white px-3 py-2 text-stone-950"
+              type="datetime-local"
+              name="startsAt"
+              value={visitStartsAt}
+              onChange={(event) => setVisitStartsAt(event.target.value)}
+              onInput={(event) => setVisitStartsAt(event.currentTarget.value)}
+            />
+          </label>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             <label className="block">
               <span className="text-sm font-bold text-emerald-50">How long</span>
@@ -505,6 +515,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
           <textarea
             className="min-h-20 w-full rounded-md border border-emerald-700 bg-white px-3 py-2 text-stone-950"
             placeholder="Optional note: play style, where you will be, or what kind of dog interaction works best."
+            aria-label="Optional visit note"
             value={visitNote}
             onChange={(event) => setVisitNote(event.target.value)}
           />
@@ -528,7 +539,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
       <Link className="font-bold text-emerald-900" to="/parks">
         Back to parks
       </Link>
-      {message && <p className="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{message}</p>}
+      {message && <p className="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-900" role="status">{message}</p>}
       <section className="mt-4 overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
         <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,1fr)_430px] lg:items-start">
           <div>
@@ -698,6 +709,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                                 <button
                                   className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white"
                                   type="button"
+                                  aria-label={`Check in now for ${visitDogLabel(visit)}`}
                                   onClick={() => checkInVisit(visit)}
                                 >
                                   Check in now
@@ -709,6 +721,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                                   <button
                                     className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white"
                                     type="button"
+                                    aria-label={`Message ${visitOwnerName(visit)}`}
                                     onClick={() => startConversation(visit)}
                                   >
                                     Message
@@ -717,6 +730,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                                 <button
                                   className="rounded-md border border-emerald-200 px-3 py-2 text-sm font-bold text-emerald-900"
                                   type="button"
+                                  aria-label={`${visit.is_interested ? "Remove interest in" : "Mark interest in"} ${visitDogLabel(visit)} visit`}
                                   onClick={() => markInterested(visit)}
                                 >
                                   {visit.is_interested ? "Interested" : "I'm interested"}
@@ -725,6 +739,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                                   <button
                                     className="rounded-md border border-stone-300 px-3 py-2 text-sm font-bold text-stone-800"
                                     type="button"
+                                    aria-label={`Send friend request to ${visitOwnerName(visit)}`}
                                     onClick={() => requestFriend(visit)}
                                   >
                                     Add friend
@@ -734,6 +749,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                                   <button
                                     className="rounded-md border border-red-200 px-3 py-2 text-sm font-bold text-red-700"
                                     type="button"
+                                    aria-label={`Block ${visitOwnerName(visit)}`}
                                     onClick={() => blockOwner(visit)}
                                   >
                                     Block
@@ -885,6 +901,7 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
                         className="w-full rounded-md bg-emerald-900 px-3 py-2 text-sm font-black text-white hover:bg-emerald-950 disabled:opacity-60"
                         type="button"
                         disabled={joiningVisitId === visit.id}
+                        aria-label={`Bring ${selectedDogName} to ${visitOwnerName(visit)}'s play window on ${formatVisitDateTime(visit.starts_at)}`}
                         onClick={() => joinVisitWindow(visit)}
                       >
                         {joiningVisitId === visit.id ? "Adding..." : hasCompatibility ? `Bring ${selectedDogName} to this match` : `Bring ${selectedDogName} at this time`}
@@ -914,19 +931,25 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
           </p>
           {signedInUser && (
             <form className="mt-4 grid gap-3" onSubmit={createReview}>
-              <select className="rounded-md border border-stone-300 px-3 py-2" value={rating} onChange={(event) => setRating(Number(event.target.value))}>
-                {[5, 4, 3, 2, 1].map((value) => (
-                  <option value={value} key={value}>
-                    {value} stars
-                  </option>
-                ))}
-              </select>
-              <textarea
-                className="min-h-24 rounded-md border border-stone-300 px-3 py-2"
-                placeholder="Share whether it was social, busy, quiet, muddy, shaded, safe, or good for certain dog sizes..."
-                value={reviewBody}
-                onChange={(event) => setReviewBody(event.target.value)}
-              />
+              <label className="block text-sm font-bold text-stone-700">
+                Rating
+                <select className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2" value={rating} onChange={(event) => setRating(Number(event.target.value))}>
+                  {[5, 4, 3, 2, 1].map((value) => (
+                    <option value={value} key={value}>
+                      {value} stars
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block text-sm font-bold text-stone-700">
+                Community note
+                <textarea
+                  className="mt-1 min-h-24 w-full rounded-md border border-stone-300 px-3 py-2"
+                  placeholder="Share whether it was social, busy, quiet, muddy, shaded, safe, or good for certain dog sizes..."
+                  value={reviewBody}
+                  onChange={(event) => setReviewBody(event.target.value)}
+                />
+              </label>
               <button className="rounded-md bg-stone-900 px-4 py-2 font-bold text-white">Post community note</button>
             </form>
           )}
@@ -945,12 +968,15 @@ function ParkDetail({ signedInUser }: { signedInUser: HumanType | null }) {
       {signedInUser && (
         <form className="mt-6 rounded-lg border border-stone-200 bg-white p-5 shadow-sm" onSubmit={submitSuggestion}>
           <h2 className="text-xl font-black">Correct this park</h2>
-          <textarea
-            className="mt-3 min-h-20 w-full rounded-md border border-stone-300 px-3 py-2"
-            placeholder="Tell moderators what should be updated."
-            value={suggestion}
-            onChange={(event) => setSuggestion(event.target.value)}
-          />
+          <label className="mt-3 block text-sm font-bold text-stone-700">
+            Correction details
+            <textarea
+              className="mt-1 min-h-20 w-full rounded-md border border-stone-300 px-3 py-2"
+              placeholder="Tell moderators what should be updated."
+              value={suggestion}
+              onChange={(event) => setSuggestion(event.target.value)}
+            />
+          </label>
           <button className="mt-3 rounded-md bg-emerald-900 px-4 py-2 font-bold text-white">Submit correction</button>
         </form>
       )}

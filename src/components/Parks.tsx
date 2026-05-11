@@ -103,7 +103,11 @@ function Parks() {
             </p>
           </div>
           <form className="flex flex-col gap-2 sm:flex-row" onSubmit={handleSearch}>
+            <label className="sr-only" htmlFor="parks-search">
+              City, ZIP, or park name
+            </label>
             <input
+              id="parks-search"
               className="min-h-11 min-w-0 rounded-md border border-stone-300 px-3 outline-none focus:border-emerald-800 sm:w-80"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -112,13 +116,13 @@ function Parks() {
             <button className="rounded-md bg-emerald-900 px-4 py-2 font-bold text-white" type="submit">
               Search
             </button>
-            <button className="rounded-md border border-stone-300 px-4 py-2 font-bold text-stone-800" type="button" onClick={searchNearMe}>
+            <button className="rounded-md border border-stone-300 px-4 py-2 font-bold text-stone-800" type="button" aria-label="Search for parks near my current location" onClick={searchNearMe}>
               {useLocation ? "Locating..." : "Near me"}
             </button>
           </form>
         </div>
-        {message && <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">{message}</p>}
-        {searchContext && <p className="mt-4 text-sm font-semibold text-stone-700">{searchContext}</p>}
+        {message && <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900" role="status">{message}</p>}
+        {searchContext && <p className="mt-4 text-sm font-semibold text-stone-700" role="status">{searchContext}</p>}
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">

@@ -84,7 +84,7 @@ function Messages({ signedInUser }: { signedInUser: HumanType | null }) {
         <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-600">
           Conversations stay available after the park visit that started them unless someone blocks the other person or turns messages off.
         </p>
-        {message && <p className="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-900">{message}</p>}
+        {message && <p className="mt-4 rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-900" role="status">{message}</p>}
       </section>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-[340px_1fr]">
@@ -100,6 +100,7 @@ function Messages({ signedInUser }: { signedInUser: HumanType | null }) {
                   }`}
                   key={conversation.id}
                   type="button"
+                  aria-label={`Open conversation with ${userLabel(conversation.otherUser)}`}
                   onClick={() => setActiveConversationId(conversation.id)}
                 >
                   <span className="block font-bold text-stone-950">{userLabel(conversation.otherUser)}</span>
@@ -117,10 +118,10 @@ function Messages({ signedInUser }: { signedInUser: HumanType | null }) {
                 <article className="rounded-md border border-stone-200 p-3" key={request.id}>
                   <p className="font-bold">{userLabel(request.user)}</p>
                   <div className="mt-3 flex gap-2">
-                    <button className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white" type="button" onClick={() => respondToFriendRequest(request.id, true)}>
+                    <button className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white" type="button" aria-label={`Accept friend request from ${userLabel(request.user)}`} onClick={() => respondToFriendRequest(request.id, true)}>
                       Accept
                     </button>
-                    <button className="rounded-md border border-stone-300 px-3 py-2 text-sm font-bold text-stone-800" type="button" onClick={() => respondToFriendRequest(request.id, false)}>
+                    <button className="rounded-md border border-stone-300 px-3 py-2 text-sm font-bold text-stone-800" type="button" aria-label={`Decline friend request from ${userLabel(request.user)}`} onClick={() => respondToFriendRequest(request.id, false)}>
                       Decline
                     </button>
                   </div>
@@ -152,7 +153,11 @@ function Messages({ signedInUser }: { signedInUser: HumanType | null }) {
                 })}
               </div>
               <form className="mt-4 flex gap-2" onSubmit={sendMessage}>
+                <label className="sr-only" htmlFor="message-draft">
+                  Message to {userLabel(activeConversation.otherUser)}
+                </label>
                 <input
+                  id="message-draft"
                   className="min-w-0 flex-1 rounded-md border border-stone-300 px-3 py-2"
                   value={draft}
                   onChange={(event) => setDraft(event.target.value)}

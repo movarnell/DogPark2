@@ -30,7 +30,7 @@ function UserAvatar({ user }: { user: HumanType }) {
         <img
           className="h-full w-full object-cover"
           src={imageUrl}
-          alt=""
+          alt={`${getDisplayName(user)} profile photo`}
           referrerPolicy="no-referrer"
           onError={() => setImageFailed(true)}
         />
@@ -64,8 +64,8 @@ function Navigation({
 
   return (
     <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur">
-      <nav className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
-        <Link to="/" className="flex items-center gap-3">
+      <nav className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between" aria-label="Primary navigation">
+        <Link to="/" className="flex items-center gap-3" aria-label="Dog Park Meetup home">
           <img className="h-10 w-10 rounded-lg" src="/brand/dog-park-meetup-mark.svg" alt="" />
           <span>
             <span className="block text-base font-black tracking-tight">Dog Park Meetup</span>
@@ -111,6 +111,8 @@ function Navigation({
               </span>
               <button
                 className="rounded-full border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-800 transition hover:bg-stone-100"
+                type="button"
+                aria-label={`Sign out ${displayName}`}
                 onClick={signOut}
               >
                 Sign out

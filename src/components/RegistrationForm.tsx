@@ -33,7 +33,7 @@ function RegistrationForm({ setSignedInUser }: { setSignedInUser: (user: HumanTy
       <form onSubmit={handleRegister} className="w-full max-w-md rounded-lg border border-stone-200 bg-white p-6 shadow-sm">
         <p className="text-sm font-bold uppercase tracking-wide text-emerald-800">Join the community</p>
         <h1 className="mt-1 text-3xl font-black">Create account</h1>
-        {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-900">{error}</p>}
+        {error && <p className="mt-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-900" role="alert">{error}</p>}
         {api.appleSignInEnabled && (
           <a
             className="mt-5 flex w-full items-center justify-center gap-3 rounded-md bg-black px-4 py-3 font-bold text-white hover:bg-stone-800"
@@ -55,11 +55,26 @@ function RegistrationForm({ setSignedInUser }: { setSignedInUser: (user: HumanTy
           Email
           <span className="h-px flex-1 bg-stone-200" />
         </div>
-        <input className="mt-5 w-full rounded-md border border-stone-300 px-3 py-2" placeholder="Full name" value={fullName} onChange={(event) => setFullName(event.target.value)} required />
-        <input className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2" type="email" placeholder="Email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-        <input className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2" placeholder="Username" value={username} onChange={(event) => setUsername(event.target.value)} required />
-        <input className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2" type="password" placeholder="Password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} />
-        <input className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2" type="password" placeholder="Confirm password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength={8} />
+        <label className="mt-5 block text-sm font-bold text-stone-700">
+          Full name
+          <input className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2" value={fullName} onChange={(event) => setFullName(event.target.value)} required />
+        </label>
+        <label className="mt-3 block text-sm font-bold text-stone-700">
+          Email
+          <input className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+        </label>
+        <label className="mt-3 block text-sm font-bold text-stone-700">
+          Username
+          <input className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2" value={username} onChange={(event) => setUsername(event.target.value)} required />
+        </label>
+        <label className="mt-3 block text-sm font-bold text-stone-700">
+          Password
+          <input className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} />
+        </label>
+        <label className="mt-3 block text-sm font-bold text-stone-700">
+          Confirm password
+          <input className="mt-1 w-full rounded-md border border-stone-300 px-3 py-2" type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required minLength={8} />
+        </label>
         <button type="submit" className="mt-6 w-full rounded-md bg-emerald-900 px-4 py-3 font-bold text-white">
           Create account
         </button>

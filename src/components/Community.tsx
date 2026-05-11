@@ -6,15 +6,19 @@ function visitDogLabel(visit: Visit) {
   return [visit.dog_name || "their dog", visit.dog_size, visit.dog_breed].filter(Boolean).join(" · ");
 }
 
+function visitOwnerLabel(visit: Visit) {
+  return visit.owner_display_name || visit.username || visit.full_name || "Owner";
+}
+
 function DogVisitAvatar({ visit }: { visit: Visit }) {
   const [failed, setFailed] = useState(false);
   const label = (visit.dog_name || "DG").slice(0, 2).toUpperCase();
   const imageUrl = api.assetUrl(visit.dog_avatar_url);
 
   return (
-    <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white">
+    <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-emerald-900 text-xs font-black text-white" aria-label={`${visit.dog_name || "Dog"} photo`}>
       {imageUrl && !failed ? (
-        <img className="h-full w-full object-cover" src={imageUrl} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+        <img className="h-full w-full object-cover" src={imageUrl} alt={`${visit.dog_name || "Dog"} photo`} referrerPolicy="no-referrer" onError={() => setFailed(true)} />
       ) : (
         label
       )}
@@ -81,7 +85,7 @@ function Community() {
           Upcoming visits help owners pick a time when dogs can meet, play, and become familiar park friends. Check in
           when you arrive so the community knows the park is active right now.
         </p>
-        {message && <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">{message}</p>}
+        {message && <p className="mt-4 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900" role="status">{message}</p>}
       </section>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
@@ -100,28 +104,28 @@ function Community() {
                     <div className="min-w-0">
                       <p className="font-black">{new Date(visit.starts_at).toLocaleString()}</p>
                       <p className="mt-1 text-sm text-stone-600">
-                        {visit.username || visit.full_name} plans to bring {visitDogLabel(visit)} · {visit.status}
+                        {visitOwnerLabel(visit)} plans to bring {visitDogLabel(visit)} · {visit.status}
                       </p>
                     </div>
                   </div>
                   <div className="flex shrink-0 flex-wrap gap-2">
                     {visit.can_message && (
-                      <button className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white" onClick={() => startConversation(visit)}>
+                      <button className="rounded-md bg-emerald-900 px-3 py-2 text-sm font-bold text-white" type="button" aria-label={`Message ${visitOwnerLabel(visit)}`} onClick={() => startConversation(visit)}>
                         Message
                       </button>
                     )}
                     {visit.can_request_friend && !visit.is_friend && (
-                      <button className="rounded-md border border-stone-300 px-3 py-2 text-sm font-bold text-stone-800" onClick={() => requestFriend(visit)}>
+                      <button className="rounded-md border border-stone-300 px-3 py-2 text-sm font-bold text-stone-800" type="button" aria-label={`Send friend request to ${visitOwnerLabel(visit)}`} onClick={() => requestFriend(visit)}>
                         Add friend
                       </button>
                     )}
                     {visit.can_block && (
-                      <button className="rounded-md border border-red-200 px-3 py-2 text-sm font-bold text-red-700" onClick={() => blockOwner(visit)}>
+                      <button className="rounded-md border border-red-200 px-3 py-2 text-sm font-bold text-red-700" type="button" aria-label={`Block ${visitOwnerLabel(visit)}`} onClick={() => blockOwner(visit)}>
                         Block
                       </button>
                     )}
                     {visit.status === "planned" && (
-                      <button className="rounded-md border border-emerald-200 px-3 py-2 text-sm font-bold text-emerald-900" onClick={() => checkIn(visit.id)}>
+                      <button className="rounded-md border border-emerald-200 px-3 py-2 text-sm font-bold text-emerald-900" type="button" aria-label={`Check in to ${visitOwnerLabel(visit)}'s visit`} onClick={() => checkIn(visit.id)}>
                         Check in
                       </button>
                     )}
